@@ -48,8 +48,34 @@ function noise(x, y, z) {
 
 const background_tiles = new Image();
 background_tiles.src = "assets/tiles.png"; // 32x16 tiles. 64x48 hexagons.
-tile_width = 64;
-tile_height = 48;
+const tile_width = 64;
+const tile_height = 48;
+const tile_names = ['empty', 'grass', 'dirt', 'stone', 'paved road'];
+
+const tile_selection_dropdown = document.getElementById("tile_selection_dropdown");
+tile_selection_dropdown.innerHTML = "<option selected>" + tile_names[1] + "</option>";
+for (i = 2; i < tile_names.length; i++) {
+    tile_selection_dropdown.innerHTML += "<option>" + tile_names[i] + "</option>";
+}
+tile_selection_dropdown.addEventListener("change", update_tile_selection);
+
+const tile_selection_display = document.getElementById("tile_selection_display");
+tile_selection_display.width = tile_width; tile_selection_display.height = tile_height;
+tile_selection_display_context = tile_selection_display.getContext("2d");
+brush_tile = 1;
+
+function update_tile_selection(event) {
+    brush_tile = tile_selection_dropdown.selectedIndex+1;
+    tile_selection_display_context.clearRect(0, 0, tile_width, tile_height);
+    tile_selection_display_context.drawImage(
+        background_tiles,
+        brush_tile * tile_width, 0,
+        tile_width, tile_height,
+        0, 0,
+        tile_width, tile_height
+    );
+}
+update_tile_selection(null);
 
 map_width = 80;
 map_height = 80;
@@ -58,7 +84,8 @@ map = []
 for (x = 0; x < map_width; x++) {
     map.push([]);
     for (y = 0; y < map_height; y++) {
-        map[x].push(1);
+        // fill the map with noise.
+        map[x].push(Math.round(1+noise(x/16,y/16,0)*32));
     }
 }
 
@@ -84,7 +111,6 @@ update_display = false;
 if (map_width < canvas.width / tile_width) map_width = Math.round(canvas.width / tile_width);
 if (map_height < canvas.height / tile_height) map_height = Math.round(canvas.height / tile_height);
 pressed_keys = {};
-brush_tile = 2;
 
 function on_image_load() {
     update_display = true;
@@ -92,8 +118,9 @@ function on_image_load() {
 }
 function draw() {
     if (update_display ) {
-        octx.fillStyle = "rgba(255,255,255,0.3)";
-        octx.fillRect(x * 64 - view_x, y * 32 - view_y + (x % 2) * 16, 96, 32);
+        octx.fillStyle = "rgba(255,255,255,1)";
+        octx.clearRect(0, 0, canvas.width, canvas.height);
+        //octx.fillRect(x * 64 - view_x, y * 32 - view_y + (x % 2) * 16, 96, 32);
         for (x = Math.floor(view_x / tile_width * scale)-1; x < Math.floor(view_x + canvas.width) / tile_width * scale + 1; x++) {
             for (y = Math.floor(view_y / 32 * scale) - 1; y < Math.floor(view_y + canvas.height) / 32 * scale + 1; y++) {
                 if (x < 1) continue; if (x > map_width - 2) continue;
@@ -215,7 +242,7 @@ function mouse_move(event) {
     }
     if ([mouse_tile_x, mouse_tile_y] != highlighted_tile) {
         highlighted_tile = [mouse_tile_x, mouse_tile_y];
-        highlighted_tile_display.innerHTML = "x: " + highlighted_tile[0] + ", y: " + highlighted_tile[1] + ", value: " + map[highlighted_tile[0]][highlighted_tile[1]];
+        highlighted_tile_display.innerHTML = "x: " + highlighted_tile[0] + ", y: " + highlighted_tile[1] + ", value: " + tile_names[map[highlighted_tile[0]][highlighted_tile[1]]] + " ("+ map[highlighted_tile[0]][highlighted_tile[1]]+")";
         update_display = true;
     }
     if ((event.buttons & 1) == 1) {
@@ -292,18 +319,6 @@ function handle_keyboard() {
     if (pressed_keys['d']) {
         view_x += view_speed;
         update_display = true;
-    }
-    if (pressed_keys['1']) {
-        brush_tile = 1;
-    }
-    if (pressed_keys['2']) {
-        brush_tile = 2;
-    }
-    if (pressed_keys['3']) {
-        brush_tile = 3;
-    }
-    if (pressed_keys['4']) {
-        brush_tile = 4;
     }
 }
 function bound_view() {
