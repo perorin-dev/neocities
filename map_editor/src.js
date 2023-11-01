@@ -75,7 +75,6 @@ function update_tile_selection(event) {
         tile_width, tile_height
     );
 }
-update_tile_selection(null);
 
 map_width = 80;
 map_height = 80;
@@ -114,6 +113,7 @@ pressed_keys = {};
 
 function on_image_load() {
     update_display = true;
+    update_tile_selection(null);
     setInterval(update, 1000 / 60);
 }
 function draw() {
