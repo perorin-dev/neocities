@@ -47,13 +47,13 @@ function noise(x, y, z) {
 }
 
 const background_tiles = new Image();
-background_tiles.src = "assets/tiles-0.03.png"; // 32x16 tiles. 96x32 hexagons.
+background_tiles.src = "assets/tiles.png"; // 32x16 tiles. 64x48 hexagons.
+tile_width = 64;
+tile_height = 48;
 
 map_width = 80;
 map_height = 80;
-if (map_width < 864 / 64) map_width = Math.round(864 / 64);
-if (map_width < 864 >> 6) map_width = 864 >> 6;
-if (map_height < 632 >> 5) map_height = 632 >> 5;
+
 map = []
 for (x = 0; x < map_width; x++) {
     map.push([]);
@@ -80,161 +80,85 @@ const offscreen_canvas = new OffscreenCanvas(canvas.width, canvas.height);
 const octx = offscreen_canvas.getContext("2d");
 octx.imageSmoothingEnabled = false;
 update_display = false;
+// prevent the map from being to small
+if (map_width < canvas.width / tile_width) map_width = Math.round(canvas.width / tile_width);
+if (map_height < canvas.height / tile_height) map_height = Math.round(canvas.height / tile_height);
 pressed_keys = {};
 brush_tile = 2;
-
-function pick_tile(tile_a, tile_b) {
-    //bg tile order:
-    // 1 - grass
-    // 2 - dirt
-    // 3 - stone
-    if (tile_a == 2 && tile_b == 0) return 1;
-    if (tile_a == 5 && tile_b == 0) return 4;
-    if (tile_a == 5 && tile_b == 2) return 3;
-    return tile_a;
-}
 
 function on_image_load() {
     update_display = true;
     setInterval(update, 1000 / 60);
 }
-function check_edges(x, y) {
-
-    o = (x % 2);
-    center = map[x][y];
-    top_left = center; top = center; top_right = center; bottom_left = center; bottom = center; bottom_right = center;
-    if (x >= 0 && x < map_width && y >= 0 && y < map_height) {
-        if (x > 0) {
-            if (y > 0) {
-                top_left = map[x - 1][y - 1 + o];
-            }
-            if (y < map_width - 1) {
-                bottom_left = map[x - 1][y + o];
-            }
-        }
-        if (x < map_width - 1) {
-            if (y > 0) {
-                top_right = map[x + 1][y - 1 + o];
-            }
-            if (y < map_width - 1) {
-                bottom_right = map[x + 1][y + o];
-            }
-        }
-        if (y > 0) {
-            top = map[x][y - 1];
-        }
-        if (y < map_height - 1) {
-            bottom = map[x][y + 1];
-        }
-    }
-    return [center, top_left, top, top_right, bottom_left, bottom, bottom_right];
-}
 function draw() {
     if (update_display ) {
-        octx.clearRect(0, 0, canvas.width, canvas.height);
-        x = highlighted_tile[0];
-        y = highlighted_tile[1];
-
-        if (x < 1) x = 1;
-        if (x > map_width - 2) x = map_width - 2;
-        if (y < 1) y = 1;
-        if (y > map_height - 2) y = map_height - 2;
-        tile_x = map[x][y] * 96;
-        tile_y = map[x - 1][y - (x % 2)] * 32;
-        octx.drawImage(
-            background_tiles, tile_x, tile_y, 32, 16,
-            Math.round((x * 64 - view_x) * scale),
-            Math.round((y * 32 - view_y + (x % 2)*16) * scale),
-            32 * scale, 16 * scale);
-        // draw top middle
-        tile_x = map[x][y] * 96;
-        tile_y = map[x][y - 1] * 32;
-        octx.drawImage(
-            background_tiles, tile_x + 32, tile_y, 32, 16,
-            Math.round((x * 64 - view_x + 32) * scale),
-            Math.round((y * 32 - view_y + (x % 2)*16) * scale),
-            32 * scale, 16 * scale);
-        // draw top right
-        tile_y = map[x + 1][y - (x%2)] * 32;
-        octx.drawImage(
-            background_tiles, tile_x + 64, tile_y, 32, 16,
-            Math.round((x * 64 - view_x + 64) * scale),
-            Math.round((y * 32 - view_y + (x % 2) * 16) * scale),
-            32 * scale, 16 * scale);
-        // draw bottom left
-        tile_y = map[x - 1][y + (x % 2)] * 32;
-        octx.drawImage(
-            background_tiles, tile_x, tile_y + 16, 32, 16,
-            Math.round((x * 64 - view_x) * scale),
-            Math.round((y * 32 - view_y + (x % 2)* 16 + 16) * scale),
-            32 * scale, 16 * scale);
-        // middle bottom
-        tile_y = map[x][y+1] * 32;
-        octx.drawImage(
-            background_tiles, tile_x + 32, tile_y + 16, 32, 16,
-            Math.round((x * 64 - view_x + 32) * scale),
-            Math.round((y * 32 - view_y + (x % 2)* 16 + 16) * scale),
-            32 * scale, 16 * scale);
-        // bottom right
-        tile_y = map[x + 1][y + (x % 2)] * 32;
-        octx.drawImage(
-            background_tiles, tile_x + 64, tile_y + 16, 32, 16,
-            Math.round((x * 64 - view_x + 64) * scale),
-            Math.round((y * 32 - view_y + (x % 2)* 16 + 16) * scale),
-            32 * scale, 16 * scale);
         octx.fillStyle = "rgba(255,255,255,0.3)";
         octx.fillRect(x * 64 - view_x, y * 32 - view_y + (x % 2) * 16, 96, 32);
-        for (x = Math.floor(view_x / 64 * scale)-1; x < Math.floor(view_x + canvas.width) / 64 * scale + 1; x++) {
+        for (x = Math.floor(view_x / tile_width * scale)-1; x < Math.floor(view_x + canvas.width) / tile_width * scale + 1; x++) {
             for (y = Math.floor(view_y / 32 * scale) - 1; y < Math.floor(view_y + canvas.height) / 32 * scale + 1; y++) {
                 if (x < 1) continue; if (x > map_width - 2) continue;
                 if (y < 1) continue; if (y > map_height - 2) continue;
-                if (x == highlighted_tile[0] && y == highlighted_tile[1]) continue;
+                // if (x == highlighted_tile[0] && y == highlighted_tile[1]) continue;
 
-                tile_x = map[x][y] * 96;
-                tile_y = map[x - 1][y-((x-1)%2)] * 32;
+                //top left
+                tile_x = map[x][y] * tile_width;
+                tile_y = map[x-1+(y%2)][y-1] * tile_height;
                 octx.drawImage(
                     background_tiles, tile_x, tile_y, 32, 16,
-                    Math.round((x * 64 - view_x) * scale),
-                    Math.round((y * 32 - view_y + (x % 2)*16) * scale),
+                    Math.round((x * tile_width - view_x + (y%2)*32) * scale),
+                    Math.round((y * 32 - view_y ) * scale),
                     32 * scale, 16 * scale);
-                // draw top middle
-                tile_y = map[x][y - 1] * 32;
+                // top right
+                tile_y = map[x+(y%2)][y - 1] * tile_height;
                 octx.drawImage(
                     background_tiles, tile_x + 32, tile_y, 32, 16,
-                    Math.round((x * 64 - view_x + 32) * scale),
-                    Math.round((y * 32 - view_y + (x % 2)*16) * scale),
+                    Math.round((x * tile_width - view_x + 32 + (y%2)*32) * scale),
+                    Math.round((y * 32 - view_y ) * scale),
                     32 * scale, 16 * scale);
-                // draw top right
-                tile_y = map[x + 1][y-((x+1)%2)] * 32;
+                // draw mid left
+                tile_y = map[x-1][y] * tile_height;
                 octx.drawImage(
-                    background_tiles, tile_x + 64, tile_y, 32, 16,
-                    Math.round((x * 64 - view_x + 64) * scale),
-                    Math.round((y * 32 - view_y + (x % 2) * 16) * scale),
+                    background_tiles, tile_x, tile_y+16, 32, 16,
+                    Math.round((x * tile_width - view_x + (y%2)*32) * scale),
+                    Math.round((y * 32 - view_y + 16 ) * scale),
                     32 * scale, 16 * scale);
-                // draw bottom left
-                tile_y = map[x - 1][y + (x % 2)] * 32;
+                // draw mid right
+                tile_y = map[x + 1][y] * tile_height;
                 octx.drawImage(
-                    background_tiles, tile_x, tile_y + 16, 32, 16,
-                    Math.round((x * 64 - view_x) * scale),
-                    Math.round((y * 32 - view_y + (x % 2)* 16 + 16) * scale),
+                    background_tiles, tile_x+32, tile_y + 16, 32, 16,
+                    Math.round((x * tile_width - view_x + (y%2)*32 + 32) * scale),
+                    Math.round((y * 32 - view_y + 16) * scale),
                     32 * scale, 16 * scale);
-                // middle bottom
-                tile_y = map[x][y+1] * 32;
+                // bottom left
+                tile_y = map[x-1+(y%2)][y+1] * tile_height;
                 octx.drawImage(
-                    background_tiles, tile_x + 32, tile_y + 16, 32, 16,
-                    Math.round((x * 64 - view_x + 32) * scale),
-                    Math.round((y * 32 - view_y + (x % 2)* 16 + 16) * scale),
+                    background_tiles, tile_x, tile_y + 32, 32, 16,
+                    Math.round((x * tile_width - view_x + (y%2)*32) * scale),
+                    Math.round((y * 32 - view_y + 32) * scale),
                     32 * scale, 16 * scale);
                 // bottom right
-                tile_y = map[x + 1][y + (x % 2)] * 32;
+                tile_y = map[x+(y%2)][y + 1] * tile_height;
                 octx.drawImage(
-                    background_tiles, tile_x + 64, tile_y + 16, 32, 16,
-                    Math.round((x * 64 - view_x + 64) * scale),
-                    Math.round((y * 32 - view_y + (x % 2)* 16 + 16) * scale),
+                    background_tiles, tile_x+32, tile_y + 32, 32, 16,
+                    Math.round((x * tile_width - view_x + (y%2)*32 + 32) * scale),
+                    Math.round((y * 32 - view_y + 32) * scale),
                     32 * scale, 16 * scale);
-
             }
         }
+        highlight_path = new Path2D();
+        octx.lineWidth = 1;
+        octx.strokeStyle = "red";
+        octx.fillStyle = "rgba(255,0,0,0.1)";
+        x = highlighted_tile[0]; y = highlighted_tile[1];
+        highlight_path.moveTo(x * tile_width + tile_width / 2 - view_x + (32*(y%2)),y * tile_height/3*2 - view_y);
+        highlight_path.lineTo(x * tile_width + tile_width - view_x+ (32*(y%2)), y * tile_height/3*2 + tile_height / 3 - view_y);
+        highlight_path.lineTo(x * tile_width + tile_width - view_x+ (32*(y%2)), y*tile_height/3*2 + tile_height / 3 * 2 - view_y);
+        highlight_path.lineTo(x * tile_width + tile_width / 2 - view_x+ (32*(y%2)), y*tile_height/3*2 + tile_height - view_y);
+        highlight_path.lineTo(x * tile_width - view_x+ (32*(y%2)) , y*tile_height/3*2 + tile_height / 3 * 2 - view_y);
+        highlight_path.lineTo(x * tile_width - view_x+ (32*(y%2)), y*tile_height/3*2 + tile_height / 3 - view_y);
+        highlight_path.closePath();
+        octx.stroke(highlight_path);
+        octx.fill(highlight_path);
         update_display = false;
         ctx.fillStyle = "#FFF";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -279,15 +203,15 @@ function mouse_move(event) {
         update_display = true;
         if (view_x < 0) view_x = 0;
         if (view_y < 0) view_y = 0;
-        if (view_x + canvas.width > map_width * 64 * scale+64) view_x = map_width * 64 * scale - canvas.width+64;
-        if (view_y + canvas.height > map_height * 32* scale+32) view_y = map_height * 32 * scale - canvas.height+32;
+        if (view_x + canvas.width > map_width * tile_width * scale+tile_width) view_x = map_width * tile_width * scale - canvas.width+tile_width;
+        if (view_y + canvas.height > map_height * 64* scale+64) view_y = map_height * 64 * scale - canvas.height+64;
     }
     // calculate which tile the mouse is over
-    mouse_tile_x = Math.round(((view_x + mouse_x - 48) * scale) / 64);
-    if (mouse_tile_x % 2) {
-        mouse_tile_y = Math.round(((view_y + mouse_y - ((view_x % 2) * 16) - 32) * scale) / 32);
+    mouse_tile_y = Math.floor((view_y + mouse_y) / (tile_height / 3 * 2));
+    if (mouse_tile_y % 2) {
+        mouse_tile_x = Math.floor((view_x + mouse_x-32) / tile_width);
     } else {
-        mouse_tile_y = Math.round(((view_y + mouse_y - 16) * scale) / 32);
+        mouse_tile_x = Math.floor((view_x + mouse_x) / tile_width);
     }
     if ([mouse_tile_x, mouse_tile_y] != highlighted_tile) {
         highlighted_tile = [mouse_tile_x, mouse_tile_y];
