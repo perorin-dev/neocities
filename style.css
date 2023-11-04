@@ -1,58 +1,61 @@
-/* CSS is how you can add style to your website, such as colors, fonts, and positioning of your
-   HTML content. To learn how to do something, just try searching Google for questions like
-   "how to change link color." */
-
-body {
-  background-color: #a0a0a7;
-  background-image: url("bg.png");
-  color: black;
+html {
+  background: url("walls/leftover.png") no-repeat center center fixed;
+  image-rendering:pixelated;
+  background-size: cover;
   font-family: "MS Mincho", "Georgia", serif;
-  font-size: 24px;
-  margin-left: 260px;
+  color: #fff;
 }
 
 h1 {
-  margin-left: 12px;
+    text-align:end;
+    font-size:16px;
+    background: #767;
+    border: 1px solid #fff;
+    padding:3px;
+    font-weight:normal;
+    margin:auto;
 }
 
-#loading {
-  margin-left: 22%;
-  font-size: 20px;
+#header-container {
+    border:1px solid #000;
 }
-
-#sidebar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 236px;
-  height: 100%;
-  background-image: url("sidebar.png");
-  border-right-style: solid;
-  border-right-width: 4px;
-  border-right-color: black;
-  box-shadow: 0px 0px 8px black;
-  padding: 10px;
+nav {
+    display:flex;
+    background:#fff;
+    padding:1px 0px 1px 1px;
+    border:1px solid #000;
+    margin-top:4px;
 }
-#sidebar-title {
-  font-size: 20px;
-  display: inline-block;
-  margin-bottom: 6px;
-  margin-left: 6px;
-  width: 236px;
-  height: 30px;
-  color: white;
+nav>a, nav>date{
+    background:linear-gradient(#767,#777);
+    color:inherit;
+    text-decoration:none;
+    padding:3px;
+    margin:0 1px 0 0;
+    flex-grow:1;
+    text-align:center;
 }
-#sidebar-link {
-  font-size: 20px;
-  display: inline-block;
-  margin-bottom: 6px;
-  margin-left: 6px;
-  width: 236px;
-  height: 30px;
+nav>a:hover{
+    color:#bbf;
 }
-
-#pfp {
-  position: fixed;
-  bottom: 0;
-  right: 0;
+#gang-stalking-blog{
+    color:#333;
+    background:#aaa;
+    border:1px solid #fff;
+    padding: 12px;
+}
+#head-date{
+    background:linear-gradient(#777,#767);
+    color:white;
+    padding:3px;
+    border:1px solid white;
+}
+#date-container{
+    display:inline-flex;
+    border:1px solid black;
+}
+#article-container{
+    margin:12px 10%;
+    display:inline-flex;
+    border:1px solid black;
 }

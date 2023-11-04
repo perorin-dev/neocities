@@ -1,21 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title>perorin's pit</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style.css" rel="stylesheet" type="text/css" media="all">
-  </head>
-  <body>
-  <h1>perorin's pit</h1>
-  <p id="loading">loading</p>
-  <div id="sidebar">
-    <div id="sidebar-title">it moves??</div>
-    <a href="texture_manipulation/index.html" id="sidebar-link">texture_manipulation</a>
-    <a href="mandelbrot_shader/index.html" id="sidebar-link">mandelbrot_shader</a>
-    <a href="map_editor/index.html" id="sidebar-link">map_editor</a>
-    <a href="https://github.com/perorin-dev" id="sidebar-link">github</a>
-  </div>
-  <script src="src.js" type="application/javascript"></script>
-  </body>
+    <head>
+        <meta charset="UTF-8">
+        <title>perorin's pit</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="style.css" rel="stylesheet" type="text/css" media="all">
+    </head>
+    <body>
+        <div id="header-container"><h1>perorin's pit</h1></div>
+        <nav>
+            <a href="map_editor/index.html">map editor</a>
+            <a href="mandelbrot_shader/index.html">mandelbrot</a>
+            <a href="https://github.com/perorin-dev">github</a>
+        </nav>
+        <div id="article-container">
+            <article id="gang-stalking-blog">
+                <div id="date-container"><date id="head-date"></date></div>
+                <p id="blog-content"></p>
+            </article>
+        </div>
+        <nav id="date-nav">
+            <date id="future-date"></date>
+            <date id="now"></date>
+            <date id="past-date"></date>
+        </nav>
+        <script src="src.js" type="application/javascript"></script>
+    </body>
 </html>
