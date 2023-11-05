@@ -39,8 +39,15 @@ function markov(date) {
         cgram = r.slice(r.length - ORDER, r.length);
     }
     i = 0;
-    while (!(r[i] == ' ')) i++;
+    while (r[i] != ' ') i++;
     r = r.slice(i);
+    for (i = 0; i < r.length; i++) {
+        if (r.slice(i, i + 2) == '. ' && Math.random() < 0.5) {
+            r = r.slice(0, i + 1) + '<br>' + r.slice(i + 1);
+            i += 4;
+        }
+    }
+    if (r.slice(-1) != '.') r += '.';
     blog_content.innerHTML = r;
     return r;
 }
