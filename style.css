@@ -42,6 +42,7 @@ nav>a:hover{
     color:#333;
     background:#aaa;
     border:1px solid #fff;
+    width:100%;
     padding: 12px;
 }
 #head-date{
@@ -55,7 +56,9 @@ nav>a:hover{
     border:1px solid black;
 }
 #article-container{
-    margin:12px 10%;
-    display:inline-flex;
+    margin:auto;
+    display:flex;
+    margin-top:4px;
+    flex-grow:1;
     border:1px solid black;
 }
