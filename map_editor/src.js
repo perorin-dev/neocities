@@ -17,18 +17,19 @@ for (i = 0; i < PERLIN_SIZE; i++) {
     perlin[i] = Math.random();
 }
 
-function noise(x, y, z) {
+function noise(x, y=0, z=0) {
     if (x < 0) x = -x; if (y < 0) y = -x; if (z < 0) z = -z;
     xi = Math.floor(x); yi = Math.floor(y); zi = Math.floor(z);
     xf = x - xi; yf = y - yi; zf = z - zi;
     ampl = 0.5;
+    r = 0;
     for (o = 0; o < perlin_octaves; o++) {
         of = xi + (yi << PERLIN_YWRAPB) + (zi << PERLIN_ZWRAPB);
         rxf = scaled_cosine(xf); ryf = scaled_cosine(yf);
         n1 = perlin[of & PERLIN_SIZE];
         n1 += rxf * (perlin[(of + 1) & PERLIN_SIZE] - n1);
         n2 = perlin[(of + PERLIN_YWRAP) & PERLIN_SIZE];
-        n2 += rxf * (perlin[(of + PERLIN_YWRAP + 1) & PERLIN_SIZE - n2]);
+        n2 += rxf * (perlin[(of + PERLIN_YWRAP + 1) & PERLIN_SIZE] - n2);
         n1 += ryf * (n2 - n1);
         of += PERLIN_ZWRAP;
         n2 = perlin[of & PERLIN_SIZE];
@@ -37,7 +38,7 @@ function noise(x, y, z) {
         n3 += rxf * (perlin[(of + PERLIN_YWRAP + 1) & PERLIN_SIZE] - n3);
         n2 += ryf * (n3 - n2);
         n1 += scaled_cosine(zf) * (n2 - n1);
-        r = n1 * ampl; ampl *= perlin_amp_falloff;
+        r += n1 * ampl; ampl *= perlin_amp_falloff;
         xi <<= 1; xf *= 2; yi <<= 1; yf *= 2; zi <<= 1; zf *= 2;
         if (xf >= 1) { xi += 1; xf -= 1; }
         if (yf >= 1) { yi += 1; yf -= 1; }
@@ -84,7 +85,7 @@ for (x = 0; x < map_width; x++) {
     map.push([]);
     for (y = 0; y < map_height; y++) {
         // fill the map with noise.
-        map[x].push(Math.round(1+noise(x/16,y/16,0)*32));
+        map[x].push(Math.round(0.5+noise(x/8,y/8,0)*3));
     }
 }
 
