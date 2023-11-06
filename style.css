@@ -62,3 +62,9 @@ nav>a:hover{
     flex-grow:1;
     border:1px solid black;
 }
+img {
+    background:#fff;
+    padding:1px;
+    border:1px solid #000;
+    margin-top:6px;
+}
