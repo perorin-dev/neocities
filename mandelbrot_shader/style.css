@@ -1,9 +1,14 @@
+@font-face {
+    font-family: mplus;
+    src: url('https://github.com/coz-m/MPLUS_FONTS/raw/master/fonts/ttf/Mplus1-Light.ttf') format('truetype');
+}
+
 html {
-    background: url("../walls/leftover.png") no-repeat center center fixed;
-    image-rendering: pixelated;
-    background-size: cover;
-    font-family: "MS Mincho", "Georgia", serif;
-    color: #fff;
+  background: url("walls/leftover.png") no-repeat center center fixed;
+  image-rendering:pixelated;
+  background-size: cover;
+  font-family: "mplus", sans-serif;
+  color: #fff;
 }
 
 p {

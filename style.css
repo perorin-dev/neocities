@@ -1,17 +1,23 @@
+@font-face {
+    font-family: mplus;
+    src: url('fonts/Mplus1-regular.ttf') format('truetype');
+}
+
 html {
   background: url("walls/leftover.png") no-repeat center center fixed;
   image-rendering:pixelated;
   background-size: cover;
-  font-family: "MS Mincho", "Georgia", serif;
+  font-family: "mplus";
+    font-size:14px;
   color: #fff;
 }
 
 h1 {
+    font-size:14px;
     text-align:end;
-    font-size:16px;
     background: #767;
     border: 1px solid #fff;
-    padding:3px;
+    padding:3px 4px 4px 4px;
     font-weight:normal;
     margin:auto;
 }
@@ -39,7 +45,7 @@ nav>a:hover{
     color:#bbf;
 }
 #gang-stalking-blog{
-    color:#333;
+    color:#444;
     background:#aaa;
     border:1px solid #fff;
     width:100%;
@@ -67,4 +73,14 @@ img {
     padding:1px;
     border:1px solid #000;
     margin-top:6px;
+}
+blockquote{
+    background:linear-gradient(#ddd,#aaa,#aaa,#aaa);
+    border:1px solid white;
+    padding: 16px;
+    margin:0;
+}
+#quote{
+    border:1px solid black;
+    margin:2% 5%;
 }
