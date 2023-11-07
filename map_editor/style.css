@@ -1,6 +1,16 @@
-canvas {
-    display:inline-block;
+p {
+    background: #aaa;
+    color: #333;
+    border: 1px solid #fff;
+    padding:3px;
+    margin:0;
+    display:flex;
+    flex-grow:1;
 }
-#keybinds {
-    display:inline-block;
+
+div {
+    display: inline-flex;
+    border: 1px solid #000;
+    margin:4px 0 4px 0;
+    width:100%;
 }

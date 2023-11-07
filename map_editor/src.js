@@ -252,6 +252,7 @@ function mouse_move(event) {
     }
 }
 function mouse_wheel(event) {
+    /*
     event.preventDefault();
     if (event.deltaY > 0) {
         scale *= 2;
@@ -261,6 +262,7 @@ function mouse_wheel(event) {
         scale *= 0.5;
         update_display = true;
     }
+    */
 }
 function key_down(event) {
     event.preventDefault();

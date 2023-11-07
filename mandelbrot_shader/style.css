@@ -4,19 +4,25 @@
 }
 
 html {
-  background: url("walls/leftover.png") no-repeat center center fixed;
+  background: url("../walls/leftover.png") no-repeat center center fixed;
   image-rendering:pixelated;
   background-size: cover;
   font-family: "mplus", sans-serif;
   color: #fff;
 }
 
+body{
+    width:80%;
+    margin:auto;
+}
 p {
     background: #aaa;
     color: #333;
     border: 1px solid #fff;
     padding:3px;
     margin:0;
+    display:flex;
+    flex-grow:1;
 }
 
 div {
