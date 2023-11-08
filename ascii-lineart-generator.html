@@ -1,0 +1,33 @@
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>perorin's pit</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="style.css" rel="stylesheet" type="text/css" media="all">
+        <link href="ascii-lineart-generator.css" rel="stylesheet" type="text/css" media="all">
+    </head>
+    <body>
+        <div id="header-container"><h1>perorin's pit</h1></div>
+        <nav>
+            <a href="map_editor/index.html">map editor</a>
+            <a href="mandelbrot_shader/index.html">mandelbrot</a>
+            <a href="ideas.html">ideas</a>
+            <a href="markov.html">markov</a>
+            <a id="cpage">ascii lineart generator</a>
+            <a href="https://github.com/perorin-dev">github</a>
+            <a href="license.html">license</a>
+        </nav>
+        <div id="article-container"><article id="gang-stalking-blog">
+            my idea for this is to generate ascii lineart copy of an image. so far though it just does simple edge detection.<br />the next step would be to manipulate the edge detected image into something that can be easily compared against various glyphs, and then compare the glyphs against each other to find which glyph suits best each section of the image.
+            </article></div>
+        <label for="image_load_element">choose an image:</label>
+        <input type="file" id="image_load_element" />
+        <button id="generate_lineart">generate lineart</button>
+        <p id="output_lineart"></p>
+        <img id="image_element"></img>
+        <canvas id="manipulation_space"></canvas>
+        <script src="ascii-lineart-generator.js" type="application/javascript"></script>
+    </body>
+</html>
