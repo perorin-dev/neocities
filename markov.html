@@ -7,16 +7,22 @@
         <link href="style.css" rel="stylesheet" type="text/css" media="all">
     </head>
     <body>
+        <div id="content">
         <div id="header-container"><h1>perorin's pit</h1></div>
         <nav>
             <a href="map_editor/index.html">map editor</a>
-            <a href="mandelbrot_shader/index.html">mandelbrot</a>
+            <a href="mandelbrot_shader/mandelbrot.html">mandelbrot</a>
             <a href="ideas.html">ideas</a>
             <a id="cpage">markov</a>
             <a href="ascii-lineart-generator.html">ascii lineart generator</a>
             <a href="https://github.com/perorin-dev">github</a>
             <a href="license.html">license</a>
         </nav>
+        <div id="article-container">
+            <article id="gang-stalking-blog">
+                <p>a wee bitty that generates text from a collection of schizo gang-stalking texts using markov chains. i spent an entire night searching for seedy schizo websites for this. the hardest part of this was that i actualy had to go through and censor anything might be considered questionable. that's what all the black bars you see are. unfortunately the generated text isn't interesting at all when compared to the sources it's generated from.<br />i intended for it to use the date as the seed for the RNG but<br />1) javascript's rng won't let you set the seed and <br />2) javascript's date functions don't work as i expected them to, everything's fine until you try to go to a future date, or you try to go to the previous month.</p>
+            </article>
+        </div>
         <div id="article-container">
             <article id="gang-stalking-blog">
                 <div id="date-container"><date id="head-date"></date></div>
@@ -29,5 +35,7 @@
             <a id="past-date"></a>
         </nav>
         <script src="markov.js" type="application/javascript"></script>
+  <script src="src.js" type="application/javascript"></script>
+        </div>
     </body>
 </html>

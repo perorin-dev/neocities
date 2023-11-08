@@ -3,15 +3,15 @@
     src: url('fonts/Mplus1-regular.ttf') format('truetype');
 }
 
-html {
-  background: url("walls/leftover.png") no-repeat center center fixed;
+body {
+  background: url("walls/c40e8490-16colors.png") no-repeat fixed;
+  background-size:200%;
   image-rendering:pixelated;
-  background-size: cover;
   font-family: "mplus", sans-serif;
     font-size:14px;
   color: #fff;
 }
-body{width:80%;margin:6px auto 6px auto;}
+#content{width:80%;margin:6px auto 6px auto;}
 
 h1 {
     font-size:14px;

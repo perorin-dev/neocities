@@ -63,7 +63,7 @@ tile_selection_dropdown.addEventListener("change", update_tile_selection);
 const tile_selection_display = document.getElementById("tile_selection_display");
 tile_selection_display.width = tile_width; tile_selection_display.height = tile_height;
 tile_selection_display_context = tile_selection_display.getContext("2d");
-brush_tile = 1;
+var brush_tile = 1;
 
 function update_tile_selection(event) {
     brush_tile = tile_selection_dropdown.selectedIndex+1;
@@ -77,10 +77,10 @@ function update_tile_selection(event) {
     );
 }
 
-map_width = 80;
-map_height = 80;
+var map_width = 80;
+var map_height = 80;
 
-map = []
+var map = []
 for (x = 0; x < map_width; x++) {
     map.push([]);
     for (y = 0; y < map_height; y++) {
@@ -90,27 +90,27 @@ for (x = 0; x < map_width; x++) {
 }
 
 // default view to the middle of the map
-view_x = map_width<<5;
-view_y = map_height<<4;
+var view_x = map_width<<5;
+var view_y = map_height<<4;
 
 // setup canvas and view
 const canvas = document.getElementById("c");
 canvas.addEventListener("mouseenter", mouse_enter);
 canvas.width = 800;
 canvas.height = 600;
-scale = 1;
-highlighted_tile = [0, 0];
+var scale = 1;
+var highlighted_tile = [0, 0];
 highlighted_tile_display = document.getElementById("highlighted_tile_display");
-view_speed = 5;
+var view_speed = 5;
 const ctx = canvas.getContext("2d");
 const offscreen_canvas = new OffscreenCanvas(canvas.width, canvas.height);
 const octx = offscreen_canvas.getContext("2d");
 octx.imageSmoothingEnabled = false;
-update_display = false;
+var update_display = false;
 // prevent the map from being to small
 if (map_width < canvas.width / tile_width) map_width = Math.round(canvas.width / tile_width);
 if (map_height < canvas.height / tile_height) map_height = Math.round(canvas.height / tile_height);
-pressed_keys = {};
+var pressed_keys = {};
 
 function on_image_load() {
     update_display = true;

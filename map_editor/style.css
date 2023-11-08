@@ -1,3 +1,6 @@
+body{
+    background-size:cover;
+}
 p {
     background: #aaa;
     color: #333;
