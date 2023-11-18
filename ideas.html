@@ -1,41 +1,75 @@
-<!DOCTYPE html>
-<html lang="en">
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8" />
     <title>perorin's pit</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style.css" rel="stylesheet" type="text/css" media="all">
+    <link rel="stylesheet" href="default.css" />
 </head>
 <body>
-    <div id="header-container"><h1>perorin's pit</h1></div>
-    <nav>
-        <a href="map_editor/index.html">map editor</a>
-        <a href="mandelbrot_shader/mandelbrot.html">mandelbrot</a>
-        <a id="cpage">ideas</a>
-        <a href="markov.html">markov</a>
-        <a href="ascii-lineart-generator.html">ascii lineart generator</a>
-        <a href="https://github.com/perorin-dev">github</a>
-        <a href="license.html">license</a>
-    </nav>
+    <img id="background-image" 
+         srcset="Images/Walls/ice-3.png, Images/Walls/ice-2.png, Images/Walls/ice-1.png, Images/Walls/ice-0.png" />
     <div id="content">
-    <div id="article-container">
-        <article id="gang-stalking-blog">
-            <div id="date-container"><date id="head-date">2023-11-07</date></div>
-            <br />
-            <img src="images/wattledaubconstruction0.png" />
-            <img src="images/wattledaubconstruction1.png" />
-            <img src="images/wattledaubconstruction2.png" />
-            <img src="images/wattledaubconstruction3.png" />
-            <p id="blog-content">reducing buildings down to their base components could allow me to make many different variations without creating too much work for myself</p>
-            <div id="date-container"><date id="head-date">2023-11-07</date></div>
-            <p id="blog-content">normal maps!</p>
-            <div id="date-container"><date id="head-date">2023-11-05</date></div>
-            <p id="blog-content">i feel like markov chains could have big potential for game ai.</p>
-        </article>
-    </div>
-    <nav><a href="index.html">return to front page</a></nav>
-    <script src="water.js" type="application/javascript"></script>
-  <script src="src.js" type="application/javascript"></script>
+        <div id="header-container">
+            <h1>perorin's pit</h1>
+        </div>
+        <div id="page-content">
+            <div id="nav-container">
+                <nav>
+                    <a href="index.html">home</a>
+                    <a id="current-page" href="ideas.html">ideas</a>
+                    <a href="map_editor.html">map editor</a>
+                    <a href="ascii-lineart-generator.html">ascii lineart generator</a>
+                    <a href="markov.html">markov chain</a>
+                    <a href="https://github.com/perorin-dev">github</a>
+                    <a href="license.html">license</a>
+                </nav>
+            </div>
+            <div id="article-container">
+                <article>
+                    <div id="post">
+                        <header id="post-header">
+                            <p id="post-title">
+                                Wattle and Daub Art
+                            </p>
+                            <time id="post-date">
+                                2023-11-07
+                            </time>
+                        </header>
+                        <div id="post-content">
+                            <div id="post-text-container">
+                                <p>
+                                    Wattle and daub wall section pixel art.
+                                </p>
+                            </div>
+                            <div id="post-image-container">
+                                <img id="thumbnail" src="Images/wattledaubconstruction0.png" />
+                                <img id="thumbnail" src="Images/wattledaubconstruction1.png" />
+                                <img id="thumbnail" src="Images/wattledaubconstruction2.png" />
+                                <img id="thumbnail" src="Images/wattledaubconstruction3.png" />
+                            </div>
+                        </div>
+                    </div>
+                    <div id="post">
+                        <header id="post-header">
+                            <p id="post-title">
+
+                            </p>
+                            <time id="post-date">
+                                2023-11-05
+                            </time>
+                        </header>
+                        <div id="post-content">
+                            <div id="post-text-container">
+                                <p>
+                                    I feel like markov chains have a lot of potential for game AI.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
     </div>
 </body>
 </html>

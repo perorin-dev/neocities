@@ -1,3 +1,9 @@
-#output_lineart {
-    font-family: Courier New, Courier, monospace;
+canvas,img{
+    display:block;
+    margin-bottom:16px!important;
+    border:2px solid #2b405d;
+    border-bottom-color:#7ca8cf;
+    border-right-color:#7ca8cf;
+    border-radius:3px;
+    margin: auto;
 }

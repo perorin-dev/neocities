@@ -1,34 +1,66 @@
 
 <!DOCTYPE html>
+
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>perorin's pit</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="style.css" rel="stylesheet" type="text/css" media="all">
-        <link href="ascii-lineart-generator.css" rel="stylesheet" type="text/css" media="all">
-    </head>
-    <body>
-        <div id="header-container"><h1>perorin's pit</h1></div>
-        <nav>
-            <a href="map_editor/index.html">map editor</a>
-            <a href="mandelbrot_shader/mandelbrot.html">mandelbrot</a>
-            <a href="ideas.html">ideas</a>
-            <a href="markov.html">markov</a>
-            <a id="cpage">ascii lineart generator</a>
-            <a href="https://github.com/perorin-dev">github</a>
-            <a href="license.html">license</a>
-        </nav>
-        <div id="article-container"><article id="gang-stalking-blog">
-            my idea for this is to generate ascii lineart copy of an image. so far though it just does simple edge detection.<br />the next step would be to manipulate the edge detected image into something that can be easily compared against various glyphs, and then compare the glyphs against each other to find which glyph suits best each section of the image.
-            </article></div>
-        <label for="image_load_element">choose an image:</label>
-        <input type="file" id="image_load_element" />
-        <button id="generate_lineart">generate lineart</button>
-        <p id="output_lineart"></p>
-        <img id="image_element"></img>
-        <canvas id="manipulation_space"></canvas>
-        <script src="ascii-lineart-generator.js" type="application/javascript"></script>
-        <script src="src.js" type="application/javascript"></script>
-    </body>
+<head>
+    <meta charset="utf-8" />
+    <title>perorin's pit</title>
+    <meta name="viewport" content="width=device, initial-scale=1.0" />
+    <link rel="stylesheet" href="default.css" />
+    <link rel="stylesheet" href="ascii-lineart-generator.css" />
+</head>
+<body>
+    <img id="background-image" 
+         srcset="Images/Walls/ice-3.png, Images/Walls/ice-2.png, Images/Walls/ice-1.png, Images/Walls/ice-0.png" />
+    <div id="content">
+        <div id="header-container">
+            <h1>perorin's pit</h1>
+        </div>
+        <div id="page-content">
+            <div id="nav-container">
+                <nav>
+                    <a href="index.html">home</a>
+                    <a href="ideas.html">ideas</a>
+                    <a href="map_editor.html">map editor</a>
+                    <a id="current-page" href="ascii-lineart-generator.html">ascii lineart generator</a>
+                    <a href="markov.html">markov chain</a>
+                    <a href="https://github.com/perorin-dev">github</a>
+                    <a href="license.html">license</a>
+                </nav>
+            </div>
+            <div id="article-container">
+                <article>
+                    <div id="post">
+                        <header id="post-header">
+                            <p id="post-title">
+                                ASCII Lineart Generator
+                            </p>
+                        </header>
+                        <div id="post-content">
+                            <p>
+                                My idea for this is to generate ascii lineart 
+                                copy of an image. So far though it just does 
+                                simple edge detection. The next step would be 
+                                to manipulate the edge detected image into 
+                                something that can be easily compared against 
+                                various glyphs, and then compare the glyphs 
+                                against each other to find which glyph suits 
+                                best each section of the image.
+                            </p>
+                        </div>
+                    </div>
+                    <div id="post">
+                        <label for="image-load-element">choose an image:</label>
+                        <input type="file" id="image-load-element" />
+                        <button id="generate-lineart">generate lineart</button>
+                        <p id="output-lineart"></p>
+                        <img id="image_element" />
+                        <canvas id="manipulation_space"></canvas>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </div>
+    <script src="ascii-lineart-generator.js" type="text/javascript"></script>
+</body>
 </html>

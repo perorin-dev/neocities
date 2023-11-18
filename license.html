@@ -1,30 +1,48 @@
-
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
         <title>perorin's pit</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="style.css" rel="stylesheet" type="text/css" media="all">
-    </head>
-    <body>
-        <div id="content">
-        <nav>
-            <a href="mandelbrot_shader/mandelbrot.html">mandelbrot</a>
-            <a href="ideas.html">ideas</a>
-            <a href="markov.html">markov</a>
-            <a href="ascii-lineart-generator.html">ascii lineart generator</a>
-            <a href="https://github.com/perorin-dev">github</a>
-            <a id="cpage">license</a>
-        </nav>
-        <div id="article-container">
-            <article id="gang-stalking-blog">
-                <p id="blog-content"><a href="https://mplus-fonts.osdn.jp">m+ font</a> used under <a href="OFL.txt">SIL Open Font License</a>. <div id="quote"><blockquote>The new M+ FONTS is released under the SIL Open Font License. This license is considered FREE by the Free Software Foundation. If you keep this license, you are permitted to use, modify, and redistribute the modified or not modified font, embed it in the document, and package it for sale freely.</blockquote></div></p>
-                <p id="blog-content">anything else you see here I'm releasing into public domain, you can do whatever the h*ck you want with it</p>
-            </article>
+    <link rel="stylesheet" href="default.css" />
+</head>
+<body>
+    <img id="background-image" 
+         srcset="Images/Walls/ice-3.png, Images/Walls/ice-2.png, Images/Walls/ice-1.png, Images/Walls/ice-0.png" />
+    <div id="content">
+        <div id="header-container">
+            <h1>perorin's pit</h1>
         </div>
-        <nav><a href="index.html">return to front page</a></nav>
-        <script src="src.js" type="application/javascript"></script>
+        <div id="page-content">
+            <div id="nav-container">
+                <nav>
+                    <a href="index.html">home</a>
+                    <a href="ideas.html">ideas</a>
+                    <a href="map_editor.html">map editor</a>
+                    <a href="ascii-lineart-generator.html">ascii lineart generator</a>
+                    <a href="markov.html">markov chain</a>
+                    <a href="https://github.com/perorin-dev">github</a>
+                    <a id="current-page" href="license.html">license</a>
+                </nav>
             </div>
-    </body>
+            <div id="article-container">
+                <article>
+                    <div id="post">
+                        <header id="post-header">
+                            <p id="post-title">
+                                License Info
+                            </p>
+                            <time id="post-date">2023-11-19</time>
+                        </header>
+                        <div id="post-content">
+                            <p>
+                                <a href="https://mplus-fonts.osdn.jp">M+ Font</a> used under <a href="OFL.txt">SIL Open Font License</a>.
+                            </p>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </div>
+</body>
 </html>

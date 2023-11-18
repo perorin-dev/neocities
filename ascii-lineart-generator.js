@@ -1,7 +1,7 @@
-const image_load_element = document.getElementById("image_load_element");
+const image_load_element = document.getElementById("image-load-element");
 const image_element = document.getElementById("image_element");
-const button = document.getElementById("generate_lineart");
-const output_lineart_element = document.getElementById("output_lineart");
+const button = document.getElementById("generate-lineart");
+const output_lineart_element = document.getElementById("output-lineart");
 const canvas = document.getElementById("manipulation_space");
 
 image_load_element.addEventListener("change", function (event) {
@@ -21,7 +21,7 @@ button.addEventListener("click", function () {
     canvas_diff = document.createElement("canvas");
     canvas_diff.width = image_element.width; canvas_diff.height = image_element.height;
     ctxd = canvas_diff.getContext("2d");
-    document.body.appendChild(canvas_diff);
+    canvas.parentElement.appendChild(canvas_diff);
     // the line detection algorithm works by applying blur and getting
     // the difference between the blurred image and the original
     ctx.drawImage(image_element, 0, 0);

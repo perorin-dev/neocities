@@ -1,29 +1,51 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
+
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>perorin's pit</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="style.css" rel="stylesheet" type="text/css" media="all">
-    </head>
-    <body>
-        <div id="content">
-        <div id="header-container"><h1>perorin's pit</h1></div>
-        <nav>
-            <a href="map_editor/index.html">map editor</a>
-            <a href="mandelbrot_shader/mandelbrot.html">mandelbrot</a>
-            <a href="ideas.html">ideas</a>
-            <a href="markov.html">markov</a>
-            <a href="ascii-lineart-generator.html">ascii lineart generator</a>
-            <a href="https://github.com/perorin-dev">github</a>
-            <a href="license.html">license</a>
-        </nav>
-        <div id="article-container">
-            <article id="gang-stalking-blog">
-                <p>i'm perorin, a dude from new zealand with an interest in programming. mostly graphics but other stuff too.<br />this website is a dumping ground for my ideas.<br /> wanna contact me? do it thru <a href="https://discordapp.com/users/250394405729468416">discord</a></p>
-            </article>
+<head>
+    <meta charset="utf-8" />
+    <title>perorin's pit</title>
+    <meta name="viewport" content="width=device, initial-scale=1.0" />
+    <link rel="stylesheet" href="default.css" />
+</head>
+<body>
+    <img id="background-image" 
+         srcset="Images/Walls/ice-3.png, Images/Walls/ice-2.png, Images/Walls/ice-1.png, Images/Walls/ice-0.png" />
+    <div id="content">
+        <div id="header-container">
+            <h1>perorin's pit</h1>
         </div>
-        <script src="src.js" type="application/javascript"></script>
+        <div id="page-content">
+            <div id="nav-container">
+                <nav>
+                    <a id="current-page" href="index.html">home</a>
+                    <a href="ideas.html">ideas</a>
+                    <a href="map_editor.html">map editor</a>
+                    <a href="ascii-lineart-generator.html">ascii lineart generator</a>
+                    <a href="markov.html">markov chain</a>
+                    <a href="https://github.com/perorin-dev">github</a>
+                    <a href="license.html">license</a>
+                </nav>
+            </div>
+            <div id="article-container">
+                <article>
+                    <div id="post">
+                        <header id="post-header">
+
+                        </header>
+                        <div id="post-content">
+                            <p>
+                                I'm perorin, a dude from New Zealand with an interest in all aspects of game development.<br />
+                                This website is a dumping ground for my ideas.<br />
+                                You can contact me through <a href="https://discordapp.com/users/250394405729468416">discord</a>.
+                            </p>
+                            <canvas id="post-canvas"></canvas>
+                        </div>
+                    </div>
+                </article>
+            </div>
         </div>
-    </body>
+    </div>
+    <script src="perlin.js" type="text/javascript"></script>
+    <script src="preview.js" type="text/javascript"></script>
+</body>
 </html>
