@@ -1,41 +1,71 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>perorin's pit</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="style.css" rel="stylesheet" type="text/css" media="all">
-    </head>
-    <body>
-        <div id="content">
-        <div id="header-container"><h1>perorin's pit</h1></div>
-        <nav>
-            <a href="map_editor/index.html">map editor</a>
-            <a href="mandelbrot_shader/mandelbrot.html">mandelbrot</a>
-            <a href="ideas.html">ideas</a>
-            <a id="cpage">markov</a>
-            <a href="ascii-lineart-generator.html">ascii lineart generator</a>
-            <a href="https://github.com/perorin-dev">github</a>
-            <a href="license.html">license</a>
-        </nav>
-        <div id="article-container">
-            <article id="gang-stalking-blog">
-                <p>a wee bitty that generates text from a collection of schizo gang-stalking texts using markov chains. i spent an entire night searching for seedy schizo websites for this. the hardest part of this was that i actualy had to go through and censor anything might be considered questionable. that's what all the black bars you see are. unfortunately the generated text isn't interesting at all when compared to the sources it's generated from.<br />i intended for it to use the date as the seed for the RNG but<br />1) javascript's rng won't let you set the seed and <br />2) javascript's date functions don't work as i expected them to, everything's fine until you try to go to a future date, or you try to go to the previous month.</p>
-            </article>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>perorin's pit</title>
+    <link rel="stylesheet" href="default.css" />
+</head>
+<body>
+    <img id="background-image" 
+         srcset="Images/Walls/ice-3.png, Images/Walls/ice-2.png, Images/Walls/ice-1.png, Images/Walls/ice-0.png" />
+    <div id="content">
+        <div id="header-container">
+            <h1>perorin's pit</h1>
         </div>
-        <div id="article-container">
-            <article id="gang-stalking-blog">
-                <div id="date-container"><date id="head-date"></date></div>
-                <p id="blog-content">please wait while the blog post loads...</p>
-            </article>
+        <div id="page-content">
+            <div id="nav-container">
+                <nav>
+                    <a href="index.html">home</a>
+                    <a href="ideas.html">ideas</a>
+                    <a href="map_editor.html">map editor</a>
+                    <a href="ascii-lineart-generator.html">ascii lineart generator</a>
+                    <a id="current-page" href="markov.html">markov chain</a>
+                    <a href="https://github.com/perorin-dev">github</a>
+                    <a href="license.html">license</a>
+                </nav>
+            </div>
+            <div id="article-container">
+                <article>
+                    <div id="post">
+                        <header id="post-header">
+                            <p id="post-title">
+                                Markov Chains
+                            </p>
+                            <time id="post-date">
+                            </time>
+                        </header>
+                        <div id="post-content">
+                            <div id="post-text-container">
+                                <p>
+                                    A little thing that generates text from a
+                                    collection of schizo gang-stalking related
+                                    texts using markov chains.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="post">
+                        <header id="post-header">
+                            <p id="post-title">
+
+                            </p>
+                            <time id="post-date">
+                                2023-11-05
+                            </time>
+                        </header>
+                        <div id="post-content">
+                            <div id="post-text-container">
+                                <p id="blog-content">
+                                    Please wait while the blog post loads...
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div>
         </div>
-        <nav id="date-nav">
-            <a id="future-date"></a>
-            <a id="now"></a>
-            <a id="past-date"></a>
-        </nav>
-        <script src="markov.js" type="application/javascript"></script>
-  <script src="src.js" type="application/javascript"></script>
-        </div>
-    </body>
+    </div>
+    <script src="markov.js" type="text/javascript"></script>
+</body>
 </html>

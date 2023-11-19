@@ -46,25 +46,12 @@ view_y = mapHeight << 4;
 
 // setup canvas and view
 const canvas = document.getElementById("display");
-canvas.addEventListener("onresize", resizeCanvas());
-canvas.addEventListener("mouseenter", mouseEnter);
 //scale = 1;
 highlightedTile = [0, 0];
 highlightedTileDisplay = document.getElementById("highlighted-tile-display");
 viewSpeed = 5;
 const ctx = canvas.getContext("2d");
 const offscreenCanvas = new OffscreenCanvas(canvas.width, canvas.height);
-function resizeCanvas() {
-    const style = getComputedStyle(canvas);
-    let w = parseInt(style.getPropertyValue("width"), 10);
-    let h = parseInt(style.getPropertyValue("height"), 10);
-    canvas.width = w;
-    canvas.height = h;
-    offscreenCanvas.width = w;
-    offscreenCanvas.height = h;
-    updateDisplay = true;
-}
-resizeCanvas();
 const octx = offscreenCanvas.getContext('2d');
 octx.imageSmoothingEnabled = false;
 // prevent the map from being too small
@@ -79,14 +66,23 @@ updateDisplay = false;
 
 function onImageLoad() {
     updateTileSelection(null);
+    canvas.addEventListener("onresize", resizeCanvas);
+    window.addEventListener("resize", resizeCanvas);
+    canvas.addEventListener("mousemove", findFocus);
+    canvas.addEventListener("mouseenter", mouseEnter);
+    resizeCanvas();
     setInterval(update, 1000 / 60);
 }
 function resizeCanvas() {
     const style = getComputedStyle(canvas);
+    canvas.width = 300; canvas.height = 150;
     let w = parseInt(style.getPropertyValue("width"), 10);
     let h = parseInt(style.getPropertyValue("height"), 10);
     canvas.width = w;
     canvas.height = h;
+    offscreenCanvas.width = w;
+    offscreenCanvas.height = h;
+    updateDisplay = true;
 }
 
 function draw() {
@@ -185,6 +181,10 @@ function draw() {
     ctx.drawImage(offscreenCanvas, 0, 0);
 }
 
+function findFocus(event) {
+    canvas.removeEventListener("mousemove", findFocus);
+    mouseEnter(event);
+}
 function mouseEnter(event) {
     prevMouse_x = event.offsetX; mouse_x = event.offsetX;
     prevMouse_y = event.offsetY; mouse_y = event.offsetY;
@@ -321,4 +321,3 @@ function update() {
 }
 
 window.addEventListener("load", onImageLoad);
-
