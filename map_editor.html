@@ -33,17 +33,25 @@
                 <div id="program">
                     <div id="display-container">
                         <canvas id="display"></canvas>
-                        <div id="sidebar">
-                            <p id="highlighted-tile-display">x: <br />y: <br />value: </p>
-                            <canvas id="tile-selection-display"></canvas>
-                            <select id="tile-selection-dropdown"></select>
+                        <div id="sidebar-container">
+                            <div id="sidebar-tab-container">
+                                <button class="sidebar-tab-button" id="paint-mode-tab">paint</button>
+                                <button class="sidebar-tab-button" id="object-mode-tab">object</button>
+                            </div>
+                            <div id="sidebar">
+                                <p id="highlighted-tile-display">x: <br />y: <br />value: </p>
+                                <canvas id="tile-selection-display"></canvas>
+                                <select id="tile-selection-dropdown"></select>
+                                <p>brush radius:</p>
+                                <input type="range" min="1" max="100" value="1" class="slider" id="size-slider" />
+                            </div>
                         </div>
                     </div>
                     <div id="information">
                         <p>
                             Hold the middle mouse button and drag or use the WASD keys to pan the view.<br />
                             Use the dropdown to select the type of tile you wish to paint.<br />
-                            Press the left mouse button to paint a tile.<br />
+                            Use the left mouse button to paint tiles.<br />
                             You can use the small button beneath the site navigation section to hide it if you want more space.<br />
                         </p>
                     </div>

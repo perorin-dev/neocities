@@ -2,7 +2,7 @@
     max-width:unset;
     width:unset;
 }
-#toggle-visibility{
+#toggle-visibility, .sidebar-tab-button{
     border: 1px solid #2b405d;
     border-bottom-width:3px;
     margin:1px;
@@ -37,9 +37,13 @@
 }
 #sidebar{
     border: 2px solid #3c5573;
-    margin-left:8px;
+    /* margin-left:8px; */
     max-width:300px;
     padding:8px;
+}
+#sidebar-container{
+    padding:8px;
+    padding-top:0;
 }
 #highlighted-tile-display{
     margin: unset;

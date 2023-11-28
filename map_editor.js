@@ -16,6 +16,7 @@ tileSelectionDisplay.height = tileHeight;
 tileSelectionDisplayContext = tileSelectionDisplay.getContext('2d');
 brushTile = 1;
 
+
 function updateTileSelection(event) {
     brushTile = tileSelectionDropdown.selectedIndex + 1;
     tileSelectionDisplayContext.clearRect(0, 0, tileWidth, tileHeight);
@@ -28,6 +29,13 @@ function updateTileSelection(event) {
     );
 }
 
+const brushSizeSlider = document.getElementById("size-slider");
+brushSizeSlider.addEventListener("change", updateBrushSize);
+brushSize = brushSizeSlider.value;
+
+function updateBrushSize(event) {
+    brushSize = brushSizeSlider.value;
+}
 mapWidth = 80;
 mapHeight = 80;
 map = [];
@@ -41,8 +49,11 @@ for (let x = 0; x < mapWidth; x++) {
 
 // set the view to the middle of the map by default
 
-view_x = mapWidth << 5;
-view_y = mapHeight << 4;
+view_x = mapWidth * tileWidth / 2;
+view_y = mapHeight * tileHeight / 3;
+tileSegmentWidth = 32;
+tileSegmentHeight = 16;
+tileCellHeight = tileHeight / 3 * 2;
 
 // setup canvas and view
 const canvas = document.getElementById("display");
@@ -104,78 +115,90 @@ function draw() {
             tile_x = map[x][y] * tileWidth;
             tile_y = map[x - 1 + (y % 2)][y - 1] * tileHeight;
             octx.drawImage(
-                backgroundTiles, tile_x, tile_y, 32, 16,
-                Math.round(x * tileWidth - view_x + (y % 2) * 32),
-                Math.round(y * 32 - view_y),
+                backgroundTiles, tile_x, tile_y, tileSegmentWidth, tileSegmentHeight,
+                Math.round(x * tileWidth - view_x + (y % 2) * tileSegmentWidth),
+                Math.round(y * tileCellHeight - view_y),
                 32, 16
             );
 
             // top right
             tile_y = map[x + (y % 2)][y - 1] * tileHeight;
             octx.drawImage(
-                backgroundTiles, tile_x + 32, tile_y, 32, 16,
-                Math.round(x * tileWidth - view_x + 32 + (y % 2) * 32),
-                Math.round(y * 32 - view_y),
-                32,16
+                backgroundTiles, tile_x + tileSegmentWidth, tile_y,
+                tileSegmentWidth, tileSegmentHeight,
+                Math.round(x * tileWidth - view_x + tileCellHeight + (y % 2) * tileCellHeight),
+                Math.round(y * tileSegmentWidth - view_y),
+                tileSegmentWidth, tileSegmentHeight
             );
 
             // mid left
             tile_y = map[x - 1][y] * tileHeight;
             octx.drawImage(
-                backgroundTiles, tile_x, tile_y + 16, 32, 16,
-                Math.round(x * tileWidth - view_x + (y % 2) * 32),
-                Math.round(y * 32 - view_y + 16),
-                32, 16
+                backgroundTiles, tile_x, tile_y + tileSegmentHeight,
+                tileSegmentWidth, tileSegmentHeight,
+                Math.round(x * tileWidth - view_x + (y % 2) * tileSegmentWidth),
+                Math.round(y * tileCellHeight - view_y + tileSegmentHeight),
+                tileSegmentWidth, tileSegmentHeight
             );
 
             // mid right
             tile_y = map[x + 1][y] * tileHeight;
             octx.drawImage(
-                backgroundTiles, tile_x+32, tile_y + 16, 32, 16,
-                Math.round(x * tileWidth - view_x + (y % 2) * 32 + 32),
-                Math.round(y * 32 - view_y + 16),
-                32, 16
+                backgroundTiles, tile_x + tileSegmentWidth, tile_y + tileSegmentHeight,
+                tileSegmentWidth, tileSegmentHeight,
+                Math.round(x * tileWidth - view_x + (y % 2) * tileSegmentWidth + tileSegmentWidth),
+                Math.round(y * tileCellHeight - view_y + tileSegmentHeight),
+                tileSegmentWidth, tileSegmentHeight
             );
 
             // bottom left
             tile_y = map[x - 1 + (y % 2)][y + 1] * tileHeight;
             octx.drawImage(
-                backgroundTiles, tile_x, tile_y + 32, 32, 16,
-                Math.round(x * tileWidth - view_x + (y % 2) * 32),
-                Math.round(y * 32 - view_y + 32),
-                32, 16
+                backgroundTiles, tile_x, tile_y + tileSegmentWidth,
+                tileSegmentWidth, tileSegmentHeight,
+                Math.round(x * tileWidth - view_x + (y % 2) * tileSegmentWidth),
+                Math.round(y * tileCellHeight - view_y + tileCellHeight),
+                tileSegmentWidth, tileSegmentHeight
             );
 
             // bottom right
             tile_y = map[x + (y % 2)][y + 1] * tileHeight;
             octx.drawImage(
-                backgroundTiles, tile_x + 32, tile_y + 32, 32, 16,
-                Math.round(x * tileWidth - view_x + (y % 2) * 32 + 32),
-                Math.round(y * 32 - view_y + 32),
-                32, 16
+                backgroundTiles, tile_x + tileSegmentWidth, tile_y + tileSegmentWidth,
+                tileSegmentWidth, tileSegmentHeight,
+                Math.round(x * tileWidth - view_x + (y % 2) * tileSegmentWidth + tileSegmentWidth),
+                Math.round(y * tileCellHeight - view_y + tileCellHeight),
+                tileSegmentWidth, tileSegmentHeight
             );
         }
     }
-    let highlightPath = new Path2D();
     octx.lineWidth = 1;
     octx.strokeStyle = "red";
     octx.fillStyle = "rgba(255,0,0,0.1)";
-    let x = highlightedTile[0], y = highlightedTile[1];
-    highlightPath.moveTo(x * tileWidth + tileWidth / 2 - view_x + (32 * (y % 2)),
-        y * tileHeight / 3 * 2 - view_y);
-    highlightPath.lineTo(x * tileWidth + tileWidth - view_x + (32 * (y % 2)),
-        y * tileHeight / 3 * 2 + tileHeight / 3 - view_y);
-    highlightPath.lineTo(x * tileWidth + tileWidth - view_x + (32 * (y % 2)),
-        y * tileHeight / 3 * 2 + tileHeight / 3 * 2 - view_y);
-    highlightPath.lineTo(x * tileWidth + tileWidth / 2 - view_x + (32 * (y % 2)),
-        y * tileHeight / 3 * 2 + tileHeight - view_y);
-    highlightPath.lineTo(x * tileWidth - view_x + (32 * (y % 2)),
-        y * tileHeight / 3 * 2 + tileHeight / 3 * 2 - view_y);
-    highlightPath.lineTo(x * tileWidth - view_x + (32 * (y % 2)),
-        y * tileHeight / 3 * 2 + tileHeight / 3 - view_y);
-    highlightPath.closePath();
-    octx.stroke(highlightPath);
-    octx.fill(highlightPath);
+    if (brushSize == 1) {
+        let highlightPath = new Path2D();
+        let x = highlightedTile[0], y = highlightedTile[1];
+        highlightPath.moveTo(x * tileWidth + tileSegmentWidth - view_x + (tileCellHeight * (y % 2)),
+            y * tileCellHeight - view_y);
+        highlightPath.lineTo(x * tileWidth + tileWidth - view_x + (tileCellHeight * (y % 2)),
+            y * tileCellHeight + tileSegmentHeight - view_y);
+        highlightPath.lineTo(x * tileWidth + tileWidth - view_x + (tileCellHeight * (y % 2)),
+            y * tileCellHeight + tileCellHeight - view_y);
+        highlightPath.lineTo(x * tileWidth + tileSegmentWidth - view_x + (tileCellHeight * (y % 2)),
+            y * tileCellHeight + tileHeight - view_y);
+        highlightPath.lineTo(x * tileWidth - view_x + (tileCellHeight * (y % 2)),
+            y * tileCellHeight + tileCellHeight - view_y);
+        highlightPath.lineTo(x * tileWidth - view_x + (tileCellHeight * (y % 2)),
+            y * tileCellHeight + tileSegmentHeight - view_y);
+        highlightPath.closePath();
+        octx.stroke(highlightPath);
+        octx.fill(highlightPath);
+    } else {
+        octx.beginPath();
+        octx.ellipse(mouse_x, mouse_y, brushSize / 20 * tileWidth, brushSize / 20 * tileWidth, 0, 0, Math.PI * 2);
+        octx.stroke();
+        octx.fill();
+    }
     ctx.fillStyle = "#FFF";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(offscreenCanvas, 0, 0);
@@ -191,6 +214,9 @@ function mouseEnter(event) {
     canvas.addEventListener("mousemove", mouseMove);
     window.addEventListener("keyup", keyUp);
     window.addEventListener("keydown", keyDown);
+    // the wheel event was originally for scaling the view, but it
+    // doesn't work the way i expected and i can't be assed fixing
+    // it for the moment
     //canvas.addEventListener("wheel", mouseWheel);
     canvas.addEventListener("mousedown", mouseDown);
     canvas.addEventListener("mouseup", mouseUp);
@@ -220,16 +246,13 @@ function mouseMove(event) {
     if ((event.buttons & 4) == 4) {
         view_x -= mouse_x - prevMouse_x;
         view_y -= mouse_y - prevMouse_y;
-        if (view_x < 0) view_x = 0;
-        if (view_y < 0) view_y = 0;
-        if (view_x + canvas.width > mapWidth * tileWidth) view_x = mapWidth * tileWidth - canvas.width + tileWidth;
-        if (view_y + canvas.height > mapHeight * 64 + 64) view_y = mapHeight * 64 - canvas.height + 64;
         updateDisplay = true;
     }
     // calculate which tile the mouse is over
-    mouseTile_y = Math.floor((view_y + mouse_y) / (tileHeight / 3 * 2));
+    // this would be nice if it were pixel perfect with respect to the hexagonal tiles. but it works well enough for the moment
+    mouseTile_y = Math.floor((view_y + mouse_y) / (tileCellHeight));
     if (mouseTile_y % 2) {
-        mouseTile_x = Math.floor((view_x + mouse_x - 32) / tileWidth);
+        mouseTile_x = Math.floor((view_x + mouse_x - tileWidth/2) / tileWidth);
     } else {
         mouseTile_x = Math.floor((view_x + mouse_x) / tileWidth);
     }
@@ -239,8 +262,33 @@ function mouseMove(event) {
         updateDisplay = true;
     }
     if ((event.buttons & 1) == 1) {
-        map[highlightedTile[0]][highlightedTile[1]] = brushTile;
+        if(brushSize == 1){
+            map[highlightedTile[0]][highlightedTile[1]] = brushTile;
+        } else {
+            paintTiles(mouse_x, mouse_y);
+        }
         updateDisplay = true;
+    }
+}
+
+function paintTiles(mouse_x,mouse_y) {
+    let radius = brushSize * tileWidth / 20;
+    let center_x = view_x + mouse_x;
+    let center_y = view_y + mouse_y;
+    let y = center_y - (radius * tileCellHeight);
+    // pythagoras shit x squared + y squared = radius squred
+    // so x = the square root of radius squared - y squared
+    let end_y = center_y + radius * tileCellHeight;
+    while (y < end_y) {
+        let x = center_x - Math.sqrt((radius * radius) - ((center_y - y) * (center_y - y)));
+        let end_x = center_x + Math.sqrt((radius * radius) - ((center_y - y) * (center_y - y)));
+        while (x < end_x) {
+            x++;
+            let my = Math.floor(y / tileCellHeight);
+            let mx = Math.floor(x / tileWidth) - (my % 2);
+            map[mx][my] = brushTile;
+        }
+        y++;
     }
 }
 
@@ -262,10 +310,7 @@ function keyUp(event) {
 
 function mouseDown(event) {
     event.preventDefault();
-    if ((event.buttons & 1) == 1) {
-        map[highlightedTile[0]][highlightedTile[1]] = brushTile;
-        updateDisplay = true;
-    }
+    mouseMove(event);
 }
 
 function mouseUp(event) {
@@ -306,11 +351,11 @@ function handleKeyboard() {
 function boundView() {
     if (view_x < 0) view_x = 0;
     if (view_y < 0) view_y = 0;
-    if (view_x > mapWidth * 64 - canvas.width) {
-        view_x = mapWidth * 64 - canvas.width;
+    if (view_x > mapWidth * tileWidth - canvas.width) {
+        view_x = mapWidth * tileWidth - canvas.width;
     }
-    if (view_y > mapHeight * 32 - canvas.height + 16) {
-        view_y = mapHeight * 32 - canvas.height + 16;
+    if (view_y > mapHeight * (tileCellHeight) - canvas.height + (tileSegmentHeight)) {
+        view_y = mapHeight * (tileCellHeight) - canvas.height + (tileSegmentHeight);
     }
 }
 
