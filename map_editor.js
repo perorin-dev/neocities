@@ -75,6 +75,7 @@ if (mapHeight < canvas.height / tileHeight) {
 pressedKeys = {};
 updateDisplay = false;
 
+// grandpa's function
 function onImageLoad() {
     updateTileSelection(null);
     canvas.addEventListener("onresize", resizeCanvas);
@@ -106,12 +107,16 @@ function draw() {
     octx.clearRect(0, 0, canvas.width, canvas.height);
 
     let tile_x, tile_y;
+    // splits the tiles into segments, one segment for each edge of the hexagon.
+    // looks up the tile to use in the tileset image by using the value
+    // of the current tile for x dimension in tileset, and the value
+    // of the neighbor tile for y dimension
     for (let x = Math.floor(view_x / tileWidth) - 1; x < Math.floor(view_x + canvas.width) / tileWidth + 1; x++) {
         for (let y = Math.floor(view_y / 32) - 1; y < Math.floor(view_y + canvas.height) / 32 + 1; y++) {
             if (x < 1) continue; if (x > mapWidth  - 2) continue;
             if (y < 1) continue; if (y > mapHeight - 2) continue;
 
-            // top left
+            // top left segment
             tile_x = map[x][y] * tileWidth;
             tile_y = map[x - 1 + (y % 2)][y - 1] * tileHeight;
             octx.drawImage(
@@ -172,6 +177,8 @@ function draw() {
             );
         }
     }
+
+    // draws the... "cursor"? i guess you'd call it?
     octx.lineWidth = 1;
     octx.strokeStyle = "red";
     octx.fillStyle = "rgba(255,0,0,0.1)";
@@ -199,6 +206,8 @@ function draw() {
         octx.stroke();
         octx.fill();
     }
+
+    // finally, draw it all to the actual screen
     ctx.fillStyle = "#FFF";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(offscreenCanvas, 0, 0);
@@ -229,7 +238,7 @@ function mouseLeave() {
     canvas.removeEventListener("mousemove", mouseMove);
     window.removeEventListener("keyup", keyUp);
     window.removeEventListener("keydown", keyDown);
-    //canvas.removeEventListener("wheel", wheel);
+    //canvas.removeEventListener("wheel", mouseWheel);
     canvas.removeEventListener("mousedown", mouseDown);
     canvas.removeEventListener("mouseup", mouseUp);
     canvas.removeEventListener("mouseleave", mouseLeave);
@@ -261,7 +270,7 @@ function mouseMove(event) {
         highlightedTileDisplay.innerHTML = `x: ${highlightedTile[0]}<br /> y: ${highlightedTile[1]}<br />value: ${tileNames[map[highlightedTile[0]][highlightedTile[1]]]} (${map[highlightedTile[0]][highlightedTile[1]]})`;
         updateDisplay = true;
     }
-    if ((event.buttons & 1) == 1) {
+    if ((event.buttons & 1) == 1) {     // is mouse button pressed?
         if(brushSize == 1){
             map[highlightedTile[0]][highlightedTile[1]] = brushTile;
         } else {
@@ -278,6 +287,9 @@ function paintTiles(mouse_x,mouse_y) {
     let y = center_y - (radius * tileCellHeight);
     // pythagoras shit x squared + y squared = radius squred
     // so x = the square root of radius squared - y squared
+    //
+    // this could be way faster if i iterated through
+    // map tiles instead of pixels
     let end_y = center_y + radius * tileCellHeight;
     while (y < end_y) {
         let x = center_x - Math.sqrt((radius * radius) - ((center_y - y) * (center_y - y)));
