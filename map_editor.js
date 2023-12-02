@@ -51,9 +51,9 @@ for (let x = 0; x < mapWidth; x++) {
 
 view_x = mapWidth * tileWidth / 2;
 view_y = mapHeight * tileHeight / 3;
-tileSegmentWidth = 32;
-tileSegmentHeight = 16;
-tileCellHeight = tileHeight / 3 * 2;
+tileSegmentWidth = Math.floor(tileWidth/2);
+tileSegmentHeight = Math.floor(tileHeight/3);
+tileCellHeight = tileSegmentHeight * 2;
 
 // setup canvas and view
 const canvas = document.getElementById("display");
@@ -112,7 +112,7 @@ function draw() {
     // of the current tile for x dimension in tileset, and the value
     // of the neighbor tile for y dimension
     for (let x = Math.floor(view_x / tileWidth) - 1; x < Math.floor(view_x + canvas.width) / tileWidth + 1; x++) {
-        for (let y = Math.floor(view_y / 32) - 1; y < Math.floor(view_y + canvas.height) / 32 + 1; y++) {
+        for (let y = Math.floor(view_y / tileCellHeight) - 1; y < Math.floor(view_y + canvas.height) / tileCellHeight + 1; y++) {
             if (x < 1) continue; if (x > mapWidth  - 2) continue;
             if (y < 1) continue; if (y > mapHeight - 2) continue;
 
