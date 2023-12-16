@@ -1,7 +1,7 @@
 const backgroundTiles = new Image();
 backgroundTiles.src = "Images/assets/tiles.png";
 const tileWidth = 64, tileHeight = 48;
-const tileNames = ['empty', 'grass', 'dirt', 'stone', 'paved road'];
+const tileNames = ['empty', 'grass', 'dirt', 'stone', 'paved road', 'paved road v2'];
 
 const tileSelectionDropdown = document.getElementById("tile-selection-dropdown");
 tileSelectionDropdown.innerHTML = `<option selected>${tileNames[1]}</option>`;
