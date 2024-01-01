@@ -33,10 +33,10 @@ function updateTileSelection(event) {
 const brushSizeSlider = document.getElementById("size-slider");
 brushSizeSlider.addEventListener("change", updateBrushSize);
 let brushSize = brushSizeSlider.value;
-
 function updateBrushSize(event) {
     brushSize = brushSizeSlider.value;
 }
+
 let mapWidth = 80;
 let mapHeight = 80;
 let map = [];
@@ -57,7 +57,12 @@ let view_y = mapHeight * tileHeight / 3;
 // of the tiles, however, the rest of the program
 // does assume, making this pointless
 const tileSegmentWidth = Math.floor(tileWidth/2);
-const tileSegmentHeight = Math.floor(tileHeight/3);
+const tileSegmentHeight = Math.floor(tileHeight / 3);
+
+// Because the tiles are not square, the actual tile image's
+// height is misleading. Remember, the actual dimensions
+// once accounting for the way the tiles intersect end up
+// being 64x32
 const tileCellHeight = tileSegmentHeight * 2;
 
 // setup canvas and view
@@ -65,11 +70,18 @@ const canvas = document.getElementById("display");
 //scale = 1;
 let highlightedTile = [0, 0];
 const highlightedTileDisplay = document.getElementById("highlighted-tile-display");
-const viewSpeed = 5;
+const viewSpeed = 7;
 const ctx = canvas.getContext("2d");
 const offscreenCanvas = new OffscreenCanvas(canvas.width, canvas.height);
 const octx = offscreenCanvas.getContext('2d');
 octx.imageSmoothingEnabled = false;
+
+// setup input 
+let pressedKeys = {};
+let mouseIsPressed = false;
+let mouse_x = 0, mouse_y = 0;
+let updateDisplay = false;
+
 // prevent the map from being too small
 if (mapWidth < canvas.width / tileWidth) {
     mapWidth = Math.round(canvas.width / tileWidth);
@@ -77,10 +89,6 @@ if (mapWidth < canvas.width / tileWidth) {
 if (mapHeight < canvas.height / tileHeight) {
     mapHeight = Math.round(canvas.height / tileHeight);
 }
-let pressedKeys = {};
-let mouse_x = 0, mouse_y = 0, prevMouse_x = 0, prevMouse_y = 0;
-let updateDisplay = false;
-
 // grandpa's function
 function onImageLoad() {
     updateTileSelection(null);
@@ -91,6 +99,15 @@ function onImageLoad() {
     resizeCanvas();
     setInterval(update, FPS);
 }
+
+function hasEventListener(element, eventType, callback) {
+    var events = element._events || (element._events = {});
+    if (!events[eventType]) {
+        return false;
+    }
+    return events[eventType].some(listener => listener === callback);
+}
+
 function resizeCanvas() {
     const style = getComputedStyle(canvas);
     canvas.width = 300; canvas.height = 150;
@@ -233,11 +250,14 @@ function findFocus(event) {
     canvas.removeEventListener("mousemove", findFocus);
     mouseEnter(event);
 }
+
 function mouseEnter(event) {
-    prevMouse_x = event.offsetX; mouse_x = event.offsetX;
-    prevMouse_y = event.offsetY; mouse_y = event.offsetY;
+    mouse_x = event.offsetX;
+    mouse_y = event.offsetY;
     canvas.addEventListener("mousemove", mouseMove);
-    window.addEventListener("keyup", keyUp);
+    if (!hasEventListener(window, 'keyup', keyUp)) {
+        window.addEventListener("keyup", keyUp);
+    }
     window.addEventListener("keydown", keyDown);
     // the wheel event was originally for scaling the view, but it
     // doesn't work the way i expected and i can't be assed fixing
@@ -252,7 +272,7 @@ function mouseEnter(event) {
 
 function mouseLeave() {
     canvas.removeEventListener("mousemove", mouseMove);
-    window.removeEventListener("keyup", keyUp);
+    //window.removeEventListener("keyup", keyUp);
     window.removeEventListener("keydown", keyDown);
     //canvas.removeEventListener("wheel", mouseWheel);
     canvas.removeEventListener("mousedown", mouseDown);
@@ -271,16 +291,7 @@ function mapLinePixelsToTileGrid(x1, y1, x2, y2) {
     // https://github.com/jagregory/abrash-black-book
 
     if ((x1 == x2) && (y1 == y2)) { // line is actually a point
-        if (brushSize == 1) {
-            //           (     y     ) / 32;
-            let tile_y = (view_y + y1) >> 5;
-            //           ((       x      ) - ( odd tile offset )) / 64;
-            let tile_x = (view_x + x1 - (32 * (tile_y & 1))) >> 6;
-            map[tile_x][tile_y] = brushTile;
-        } else {
-            paintTiles(x1, y1);
-        }
-        updateDisplay = true;
+        paintTiles(x1, y1);
         return;
     }
     
@@ -290,17 +301,43 @@ function mapLinePixelsToTileGrid(x1, y1, x2, y2) {
 
     if (y1 == y2) {
         lineMode = 1; // line is horizontal
-        begin_x = Math.min(x1, x2);
-        end_x = Math.max(x1, x2);
+        if (x1 < x2) {
+            begin_x = x1;
+            end_x = x2;
+        } else {
+            begin_x = x2;
+            end_x = x1;
+        }
         begin_y = y1;
         end_y = y1;
     } else if (x1 == x2) {
         lineMode = 0; // line is vertical
         begin_x = x1;
         end_x = x1;
-        begin_y = Math.min(y1, y2);
-        end_y = Math.max(y1, y2);
-    } else {
+        if (y1 < y2) {
+            begin_y = y1;
+            end_y = y2;
+        } else {
+            begin_y = y2;
+            end_y = y1;
+        }
+    } else if (Math.abs(x2 - x1) == Math.abs(y2 - y1)) { // line is square
+        lineMode = 2;
+        if (x1 < x2) {
+            begin_x = x1;
+            end_x = x2;
+        } else {
+            begin_x = x2;
+            end_x = x1;
+        }
+        if (y1 < y2) {
+            begin_y = y1;
+            end_y = y2;
+        } else {
+            begin_y = y2;
+            end_y = y1;
+        }
+    } else { // none of the above, use bresenham's algorithm
         if (y1 > y2) {
             begin_y = y2;
             end_y = y1;
@@ -314,83 +351,48 @@ function mapLinePixelsToTileGrid(x1, y1, x2, y2) {
         }
         deltaX = end_x - begin_x;
         deltaY = end_y - begin_y;
-        if (Math.abs(deltaX) == Math.abs(deltaY)) {
-            lineMode = 2; // line is diagonal
-        } else {
-            xDirection = 1;
-            if (deltaX > 0) {
-                if (deltaX > deltaY) {
-                    lineMode = 3;
-                } else {
-                    lineMode = 4;
-                }
+        xDirection = 1;
+        if (deltaX > 0) {
+            if (deltaX > deltaY) {
+                lineMode = 3;
             } else {
-                deltaX = -deltaX;
-                xDirection = -1;
-                if (deltaX > deltaY) {
-                    lineMode = 3;
-                } else {
-                    lineMode = 4;
-                }
+                lineMode = 4;
+            }
+        } else {
+            deltaX = -deltaX;
+            xDirection = -1;
+            if (deltaX > deltaY) {
+                lineMode = 3;
+            } else {
+                lineMode = 4;
             }
         }
     }
     
-    // This is how I convert from pixel space to the map's tile space
-    // I should stick this somewhere more obvious...;.
-    //           (       y        ) / 32;
-    let tile_y = (view_y + begin_y) >> 5;
-    //           ((      x       ) - ( odd tile offset )) / 64;
-    let tile_x = (view_x + begin_x - (32 * (tile_y & 1))) >> 6;
-
     let x = begin_x;
     let y = begin_y;
     let errorTerm;
 
     switch (lineMode) {
         case 0: // vertical
-            map[tile_x][tile_y] = brushTile;
             while (y < end_y) {
-                if (brushSize == 1) {
-                    tile_y = (view_y + y) >> 5;
-                    map[tile_x][tile_y] = brushTile;
-                } else {
-                    paintTiles(x, y);
-                }
+                paintTiles(x, y);
                 y += tileCellHeight;
             }
             break;
 
         case 1: // horizontal
-            map[tile_x][tile_y] = brushTile;
             while (x < end_x) {
-                if (brushSize == 1) {
-                    tile_x = (view_x + x - (32 * (tile_y & 1))) >> 6;
-                    map[tile_x][tile_y] = brushTile;
-                } else {
-                    paintTiles(x, y);
-                }
+                paintTiles(x, y);
                 x += tileWidth;
             }
             break;
-        case 2: // diagonal
-            // I have a feeling this case is bugged, but it happens
-            // so rarely it's hard to figure out how...
-            x = Math.min(x1, x2);
-            end_x = Math.max(x1, x2);
-            y = Math.min(y1, y2);
-            end_y = Math.max(y1, y2);
-            map[tile_x][tile_y] = brushTile;
+
+        case 2: // diagonal / deltax == deltay
             while (x < end_x) {
-                if (brushSize == 1) {
-                    tile_y = (view_y + y) >> 5;
-                    tile_x = (view_x + x - (32 * (tile_y & 1))) >> 6;
-                    map[tile_x][tile_y] = brushTile;
-                } else {
-                    paintTiles(x, y);
-                }
-                x += 16;
-                y += 16;
+                paintTiles(x, y);
+                x += 32;
+                y += 32;
             }
             break;
 
@@ -400,7 +402,7 @@ function mapLinePixelsToTileGrid(x1, y1, x2, y2) {
             let deltaYx2 = deltaY * 2;
             let deltaYx2MinusDeltaXx2 = deltaY - (deltaX * 2);
             errorTerm = deltaYx2 - deltaX;
-            map[tile_x][tile_y] = brushTile;
+            paintTiles(x, y);
             while (deltaX--) {
                 if (errorTerm >= 0) {
                     y++;
@@ -409,13 +411,7 @@ function mapLinePixelsToTileGrid(x1, y1, x2, y2) {
                     errorTerm += deltaYx2;
                 }
                 x += xDirection;
-                if (brushSize == 1) {
-                    tile_y = (view_y + y) >> 5;
-                    tile_x = (view_x + x - (32 * (tile_y & 1))) >> 6;
-                    map[tile_x][tile_y] = brushTile;
-                } else {
-                    paintTiles(x, y);
-                }
+                paintTiles(x, y);
             }
             break;
 
@@ -426,7 +422,7 @@ function mapLinePixelsToTileGrid(x1, y1, x2, y2) {
             let deltaXx2 = deltaX * 2;
             let deltaXx2MinusDeltaYx2 = deltaXx2 - (deltaY * 2);
             errorTerm = deltaXx2 - deltaY;
-            map[tile_x][tile_y] = brushTile;
+            paintTiles(x, y);
             while (deltaY--) {
                 if (errorTerm >= 0) {
                     x += xDirection;
@@ -435,13 +431,7 @@ function mapLinePixelsToTileGrid(x1, y1, x2, y2) {
                     errorTerm += deltaXx2;
                 }
                 y++;
-                if (brushSize == 1) {
-                    tile_y = (view_y + y) >> 5;
-                    tile_x = (view_x + x - (32 * (tile_y & 1))) >> 6;
-                    map[tile_x][tile_y] = brushTile;
-                } else {
-                    paintTiles(x, y);
-                }
+                paintTiles(x, y);
             }
             break;
 
@@ -449,40 +439,54 @@ function mapLinePixelsToTileGrid(x1, y1, x2, y2) {
     updateDisplay = true;
     return;
 }
-function mouseMove(event) {
-    event.preventDefault();
-    mouse_x = event.offsetX;
-    mouse_y = event.offsetY;
-    // pan view when middle mouse is pressed
-    if ((event.buttons & 4) == 4) {
-        view_x -= mouse_x - prevMouse_x;
-        view_y -= mouse_y - prevMouse_y;
-        updateDisplay = true;
-    }
+
+function panView(px, py, cx, cy) {
+    view_x -= cx - px;
+    view_y -= cy - py;
+    updateDisplay = true;
+    return;
+}
+
+function highlightTile(x, y) {
     // calculate which tile the mouse is over
     // this would be nice if it were pixel perfect with respect to the
     //  hexagonal tiles.but it works well enough for the moment
-    // also needs to be moved to its own dedicated function
-    mouseTile_y = Math.floor((view_y + mouse_y) / (tileCellHeight));
-    if (mouseTile_y % 2) {
-        mouseTile_x = Math.floor((view_x + mouse_x - tileWidth / 2) / tileWidth);
-    } else {
-        mouseTile_x = Math.floor((view_x + mouse_x) / tileWidth);
-    }
+    let mouseTile_y = (view_y + y) >> 5;
+    let mouseTile_x = ((view_x + x - (32 * (mouseTile_y & 1))) >> 6);
     if ([mouseTile_x, mouseTile_y] != highlightedTile) {
         highlightedTile = [mouseTile_x, mouseTile_y];
         highlightedTileDisplay.innerHTML = `x: ${highlightedTile[0]}<br /> y: ${highlightedTile[1]}<br />value: ${tileNames[map[highlightedTile[0]][highlightedTile[1]]]} (${map[highlightedTile[0]][highlightedTile[1]]})`;
         updateDisplay = true;
     }
+    return;
+}
+
+function mouseMove(event) {
+    event.preventDefault();
+    const prevMouse_x = mouse_x, prevMouse_y = mouse_y;
+
+    mouse_x = event.offsetX;
+    mouse_y = event.offsetY;
+
+    highlightTile(mouse_x, mouse_y);
 
     if ((event.buttons & 1) == 1) { // is mouse button pressed?
         mapLinePixelsToTileGrid(prevMouse_x, prevMouse_y, mouse_x, mouse_y);
     }
-    prevMouse_x = mouse_x;
-    prevMouse_y = mouse_y;
+
+    if ((event.buttons & 4) == 4) { // is middle mouse pressed?
+        panView(prevMouse_x, prevMouse_y, mouse_x, mouse_y);
+    }
 }
 
 function paintTiles(mouse_x,mouse_y) {
+    if (brushSize == 1) {
+        const tile_y = (view_y + mouse_y) >> 5;
+        const tile_x = (view_x + mouse_x - (32 * (tile_y & 1))) >> 6;
+        map[tile_x][tile_y] = brushTile;
+        updateDisplay = true;
+        return;
+    }
     let radius = brushSize * tileWidth / 20;
     let center_x = view_x + mouse_x;
     let center_y = view_y + mouse_y;
@@ -502,6 +506,7 @@ function paintTiles(mouse_x,mouse_y) {
         }
         y+=16;
     }
+    return;
 }
 
 /*
@@ -522,11 +527,13 @@ function keyUp(event) {
 
 function mouseDown(event) {
     event.preventDefault();
+    mouseIsPressed = true;
     mouseMove(event);
 }
 
 function mouseUp(event) {
     event.preventDefault();
+    mouseIsPressed = false;
 }
 
 /* TO BE IMPLEMENTED
@@ -542,21 +549,21 @@ function mouseUp(event) {
 */
 
 function handleKeyboard() {
+    let offsetX = 0, offsetY = 0;
     if (pressedKeys['w']) {
-        view_y -= viewSpeed;
-        updateDisplay = true;
+        offsetY += viewSpeed;
     }
     if (pressedKeys['a']) {
-        view_x -= viewSpeed;
-        updateDisplay = true;
+        offsetX += viewSpeed;
     }
     if (pressedKeys['s']) {
-        view_y += viewSpeed;
-        updateDisplay = true;
+        offsetY -= viewSpeed;
     }
     if (pressedKeys['d']) {
-        view_x += viewSpeed;
-        updateDisplay = true;
+        offsetX -= viewSpeed;
+    }
+    if (offsetX || offsetY) {
+        panView(0, 0, offsetX, offsetY);
     }
 }
 
