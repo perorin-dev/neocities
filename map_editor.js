@@ -245,10 +245,196 @@ function mouseLeave() {
     canvas.addEventListener("mouseenter", mouseEnter);
 }
 
+// remind me to give this function a reasonable name at some point
+function mapLinePixelsToTileGrid(x1, y1, x2, y2) {
+
+    // this function is """heavily inspired""" by Michael Abrash's C implementation
+    // of Bresenham's line-drawing algorithm from his book:
+    //  Michael Abrash's Graphics Programming Black Book
+    // I can't recommend the book enough, you can download and read it for free at
+    // https://github.com/jagregory/abrash-black-book
+
+    if ((x1 == x2) && (y1 == y2)) { // line is actually a point
+        if (brushSize == 1) {
+            //           (     y     ) / 32;
+            let tile_y = (view_y + y1) >> 5;
+            //           ((       x      ) - ( odd tile offset )) / 64;
+            let tile_x = (view_x + x1 - (32 * (tile_y & 1))) >> 6;
+            map[tile_x][tile_y] = brushTile;
+        } else {
+            paintTiles(x1, y1);
+        }
+        updateDisplay = true;
+        return;
+    }
+    
+
+    // find out what kind of line we're making
+    let begin_x, end_x, begin_y, end_y, lineMode, xDirection, deltaX, deltaY;
+
+    if (y1 == y2) {
+        lineMode = 1; // line is horizontal
+        begin_x = Math.min(x1, x2);
+        end_x = Math.max(x1, x2);
+        begin_y = y1;
+        end_y = y1;
+    } else if (x1 == x2) {
+        lineMode = 0; // line is vertical
+        begin_x = x1;
+        end_x = x1;
+        begin_y = Math.min(y1, y2);
+        end_y = Math.max(y1, y2);
+    } else {
+        if (y1 > y2) {
+            begin_y = y2;
+            end_y = y1;
+            begin_x = x2;
+            end_x = x1;
+        } else {
+            begin_y = y1;
+            end_y = y2;
+            begin_x = x1;
+            end_x = x2;
+        }
+        deltaX = end_x - begin_x;
+        deltaY = end_y - begin_y;
+        if (Math.abs(deltaX) == Math.abs(deltaY)) {
+            lineMode = 2; // line is diagonal
+        } else {
+            xDirection = 1;
+            if (deltaX > 0) {
+                if (deltaX > deltaY) {
+                    lineMode = 3;
+                } else {
+                    lineMode = 4;
+                }
+            } else {
+                deltaX = -deltaX;
+                xDirection = -1;
+                if (deltaX > deltaY) {
+                    lineMode = 3;
+                } else {
+                    lineMode = 4;
+                }
+            }
+        }
+    }
+    
+    // This is how I convert from pixel space to the map's tile space
+    // I should stick this somewhere more obvious...;.
+    //           (       y        ) / 32;
+    let tile_y = (view_y + begin_y) >> 5;
+    //           ((      x       ) - ( odd tile offset )) / 64;
+    let tile_x = (view_x + begin_x - (32 * (tile_y & 1))) >> 6;
+
+    let x = begin_x;
+    let y = begin_y;
+    let errorTerm;
+
+    switch (lineMode) {
+        case 0: // vertical
+            map[tile_x][tile_y] = brushTile;
+            while (y < end_y) {
+                if (brushSize == 1) {
+                    tile_y = (view_y + y) >> 5;
+                    map[tile_x][tile_y] = brushTile;
+                } else {
+                    paintTiles(x, y);
+                }
+                y += tileCellHeight;
+            }
+            break;
+
+        case 1: // horizontal
+            map[tile_x][tile_y] = brushTile;
+            while (x < end_x) {
+                if (brushSize == 1) {
+                    tile_x = (view_x + x - (32 * (tile_y & 1))) >> 6;
+                    map[tile_x][tile_y] = brushTile;
+                } else {
+                    paintTiles(x, y);
+                }
+                x += tileWidth;
+            }
+            break;
+        case 2: // diagonal
+            // I have a feeling this case is bugged, but it happens
+            // so rarely it's hard to figure out how...
+            x = Math.min(x1, x2);
+            end_x = Math.max(x1, x2);
+            y = Math.min(y1, y2);
+            end_y = Math.max(y1, y2);
+            map[tile_x][tile_y] = brushTile;
+            while (x < end_x) {
+                if (brushSize == 1) {
+                    tile_y = (view_y + y) >> 5;
+                    tile_x = (view_x + x - (32 * (tile_y & 1))) >> 6;
+                    map[tile_x][tile_y] = brushTile;
+                } else {
+                    paintTiles(x, y);
+                }
+                x += 16;
+                y += 16;
+            }
+            break;
+
+        // why am i doing this? idk...
+
+        case 3: // deltax > deltay
+            let deltaYx2 = deltaY * 2;
+            let deltaYx2MinusDeltaXx2 = deltaY - (deltaX * 2);
+            errorTerm = deltaYx2 - deltaX;
+            map[tile_x][tile_y] = brushTile;
+            while (deltaX--) {
+                if (errorTerm >= 0) {
+                    y++;
+                    errorTerm += deltaYx2MinusDeltaXx2;
+                } else {
+                    errorTerm += deltaYx2;
+                }
+                x += xDirection;
+                if (brushSize == 1) {
+                    tile_y = (view_y + y) >> 5;
+                    tile_x = (view_x + x - (32 * (tile_y & 1))) >> 6;
+                    map[tile_x][tile_y] = brushTile;
+                } else {
+                    paintTiles(x, y);
+                }
+            }
+            break;
+
+        // this is like replacing the milk in ur cereal with
+        // water and then eating a couple pizzas for dinner...
+
+        case 4: // deltax < deltay
+            let deltaXx2 = deltaX * 2;
+            let deltaXx2MinusDeltaYx2 = deltaXx2 - (deltaY * 2);
+            errorTerm = deltaXx2 - deltaY;
+            map[tile_x][tile_y] = brushTile;
+            while (deltaY--) {
+                if (errorTerm >= 0) {
+                    x += xDirection;
+                    errorTerm += deltaXx2MinusDeltaYx2;
+                } else {
+                    errorTerm += deltaXx2;
+                }
+                y++;
+                if (brushSize == 1) {
+                    tile_y = (view_y + y) >> 5;
+                    tile_x = (view_x + x - (32 * (tile_y & 1))) >> 6;
+                    map[tile_x][tile_y] = brushTile;
+                } else {
+                    paintTiles(x, y);
+                }
+            }
+            break;
+
+    }
+    updateDisplay = true;
+    return;
+}
 function mouseMove(event) {
     event.preventDefault();
-    prevMouse_x = mouse_x;
-    prevMouse_y = mouse_y;
     mouse_x = event.offsetX;
     mouse_y = event.offsetY;
     // pan view when middle mouse is pressed
@@ -258,10 +444,12 @@ function mouseMove(event) {
         updateDisplay = true;
     }
     // calculate which tile the mouse is over
-    // this would be nice if it were pixel perfect with respect to the hexagonal tiles. but it works well enough for the moment
+    // this would be nice if it were pixel perfect with respect to the
+    //  hexagonal tiles.but it works well enough for the moment
+    // also needs to be moved to its own dedicated function
     mouseTile_y = Math.floor((view_y + mouse_y) / (tileCellHeight));
     if (mouseTile_y % 2) {
-        mouseTile_x = Math.floor((view_x + mouse_x - tileWidth/2) / tileWidth);
+        mouseTile_x = Math.floor((view_x + mouse_x - tileWidth / 2) / tileWidth);
     } else {
         mouseTile_x = Math.floor((view_x + mouse_x) / tileWidth);
     }
@@ -270,14 +458,12 @@ function mouseMove(event) {
         highlightedTileDisplay.innerHTML = `x: ${highlightedTile[0]}<br /> y: ${highlightedTile[1]}<br />value: ${tileNames[map[highlightedTile[0]][highlightedTile[1]]]} (${map[highlightedTile[0]][highlightedTile[1]]})`;
         updateDisplay = true;
     }
-    if ((event.buttons & 1) == 1) {     // is mouse button pressed?
-        if(brushSize == 1){
-            map[highlightedTile[0]][highlightedTile[1]] = brushTile;
-        } else {
-            paintTiles(mouse_x, mouse_y);
-        }
-        updateDisplay = true;
+
+    if ((event.buttons & 1) == 1) { // is mouse button pressed?
+        mapLinePixelsToTileGrid(prevMouse_x, prevMouse_y, mouse_x, mouse_y);
     }
+    prevMouse_x = mouse_x;
+    prevMouse_y = mouse_y;
 }
 
 function paintTiles(mouse_x,mouse_y) {
@@ -285,22 +471,20 @@ function paintTiles(mouse_x,mouse_y) {
     let center_x = view_x + mouse_x;
     let center_y = view_y + mouse_y;
     let y = center_y - (radius * tileCellHeight);
-    // pythagoras shit x squared + y squared = radius squred
+    // pythagoras sh*t x squared + y squared = radius squred
     // so x = the square root of radius squared - y squared
     //
-    // this could be way faster if i iterated through
-    // map tiles instead of pixels
     let end_y = center_y + radius * tileCellHeight;
     while (y < end_y) {
         let x = center_x - Math.sqrt((radius * radius) - ((center_y - y) * (center_y - y)));
         let end_x = center_x + Math.sqrt((radius * radius) - ((center_y - y) * (center_y - y)));
         while (x < end_x) {
-            x++;
-            let my = Math.floor(y / tileCellHeight);
-            let mx = Math.floor(x / tileWidth) - (my % 2);
+            x += 64;
+            let my = y >> 5;
+            let mx = (x >> 6) - (my & 1);
             map[mx][my] = brushTile;
         }
-        y++;
+        y+=32;
     }
 }
 
