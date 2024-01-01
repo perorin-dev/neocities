@@ -15,7 +15,7 @@ function on_load() {
 }
 
 function draw() {
-    t += 1;
+    t++;
     const newImageData = new ImageData(c.width, c.height);
     for (let y = 0; y < c.height; y++) {
         for (let x = 0; x < c.width; x++) {

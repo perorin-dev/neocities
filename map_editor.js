@@ -2,6 +2,7 @@ const backgroundTiles = new Image();
 backgroundTiles.src = "Images/assets/tiles.png";
 const tileWidth = 64, tileHeight = 48;
 const tileNames = ['empty', 'grass', 'dirt', 'stone', 'paved road', 'paved road v2'];
+const FPS = 1000 / 60;
 
 const tileSelectionDropdown = document.getElementById("tile-selection-dropdown");
 tileSelectionDropdown.innerHTML = `<option selected>${tileNames[1]}</option>`;
@@ -13,8 +14,8 @@ tileSelectionDropdown.addEventListener("change", updateTileSelection);
 const tileSelectionDisplay = document.getElementById("tile-selection-display");
 tileSelectionDisplay.width = tileWidth;
 tileSelectionDisplay.height = tileHeight;
-tileSelectionDisplayContext = tileSelectionDisplay.getContext('2d');
-brushTile = 1;
+const tileSelectionDisplayContext = tileSelectionDisplay.getContext('2d');
+let brushTile = 1;
 
 
 function updateTileSelection(event) {
@@ -31,14 +32,14 @@ function updateTileSelection(event) {
 
 const brushSizeSlider = document.getElementById("size-slider");
 brushSizeSlider.addEventListener("change", updateBrushSize);
-brushSize = brushSizeSlider.value;
+let brushSize = brushSizeSlider.value;
 
 function updateBrushSize(event) {
     brushSize = brushSizeSlider.value;
 }
-mapWidth = 80;
-mapHeight = 80;
-map = [];
+let mapWidth = 80;
+let mapHeight = 80;
+let map = [];
 for (let x = 0; x < mapWidth; x++) {
     map.push([]);
     for (let y = 0; y < mapHeight; y++) {
@@ -49,18 +50,22 @@ for (let x = 0; x < mapWidth; x++) {
 
 // set the view to the middle of the map by default
 
-view_x = mapWidth * tileWidth / 2;
-view_y = mapHeight * tileHeight / 3;
-tileSegmentWidth = Math.floor(tileWidth/2);
-tileSegmentHeight = Math.floor(tileHeight/3);
-tileCellHeight = tileSegmentHeight * 2;
+let view_x = mapWidth * tileWidth / 2;
+let view_y = mapHeight * tileHeight / 3;
+
+// these calculations don't assume the actual dimensions
+// of the tiles, however, the rest of the program
+// does assume, making this pointless
+const tileSegmentWidth = Math.floor(tileWidth/2);
+const tileSegmentHeight = Math.floor(tileHeight/3);
+const tileCellHeight = tileSegmentHeight * 2;
 
 // setup canvas and view
 const canvas = document.getElementById("display");
 //scale = 1;
-highlightedTile = [0, 0];
-highlightedTileDisplay = document.getElementById("highlighted-tile-display");
-viewSpeed = 5;
+let highlightedTile = [0, 0];
+const highlightedTileDisplay = document.getElementById("highlighted-tile-display");
+const viewSpeed = 5;
 const ctx = canvas.getContext("2d");
 const offscreenCanvas = new OffscreenCanvas(canvas.width, canvas.height);
 const octx = offscreenCanvas.getContext('2d');
@@ -72,8 +77,9 @@ if (mapWidth < canvas.width / tileWidth) {
 if (mapHeight < canvas.height / tileHeight) {
     mapHeight = Math.round(canvas.height / tileHeight);
 }
-pressedKeys = {};
-updateDisplay = false;
+let pressedKeys = {};
+let mouse_x = 0, mouse_y = 0, prevMouse_x = 0, prevMouse_y = 0;
+let updateDisplay = false;
 
 // grandpa's function
 function onImageLoad() {
@@ -83,7 +89,7 @@ function onImageLoad() {
     canvas.addEventListener("mousemove", findFocus);
     canvas.addEventListener("mouseenter", mouseEnter);
     resizeCanvas();
-    setInterval(update, 1000 / 60);
+    setInterval(update, FPS);
 }
 function resizeCanvas() {
     const style = getComputedStyle(canvas);
@@ -98,6 +104,7 @@ function resizeCanvas() {
 }
 
 function draw() {
+    if (!updateDisplay) return;
     if (offscreenCanvas.width != canvas.width) {
         offscreenCanvas.width = canvas.width;
     }
@@ -111,27 +118,31 @@ function draw() {
     // looks up the tile to use in the tileset image by using the value
     // of the current tile for x dimension in tileset, and the value
     // of the neighbor tile for y dimension
+    //
+    // performance could be improved by splitting up the tileset before looping through the map
     for (let x = Math.floor(view_x / tileWidth) - 1; x < Math.floor(view_x + canvas.width) / tileWidth + 1; x++) {
         for (let y = Math.floor(view_y / tileCellHeight) - 1; y < Math.floor(view_y + canvas.height) / tileCellHeight + 1; y++) {
+            // i don't want to deal with any potential out of bounds indices so i'm just
+            // throwing out all the edges
             if (x < 1) continue; if (x > mapWidth  - 2) continue;
             if (y < 1) continue; if (y > mapHeight - 2) continue;
 
             // top left segment
             tile_x = map[x][y] * tileWidth;
-            tile_y = map[x - 1 + (y % 2)][y - 1] * tileHeight;
+            tile_y = map[x - 1 + (y & 1)][y - 1] * tileHeight;
             octx.drawImage(
                 backgroundTiles, tile_x, tile_y, tileSegmentWidth, tileSegmentHeight,
-                Math.round(x * tileWidth - view_x + (y % 2) * tileSegmentWidth),
+                Math.round(x * tileWidth - view_x + (y & 1) * tileSegmentWidth),
                 Math.round(y * tileCellHeight - view_y),
                 32, 16
             );
 
             // top right
-            tile_y = map[x + (y % 2)][y - 1] * tileHeight;
+            tile_y = map[x + (y & 1)][y - 1] * tileHeight;
             octx.drawImage(
                 backgroundTiles, tile_x + tileSegmentWidth, tile_y,
                 tileSegmentWidth, tileSegmentHeight,
-                Math.round(x * tileWidth - view_x + tileCellHeight + (y % 2) * tileCellHeight),
+                Math.round(x * tileWidth - view_x + tileCellHeight + (y & 1) * tileCellHeight),
                 Math.round(y * tileSegmentWidth - view_y),
                 tileSegmentWidth, tileSegmentHeight
             );
@@ -141,7 +152,7 @@ function draw() {
             octx.drawImage(
                 backgroundTiles, tile_x, tile_y + tileSegmentHeight,
                 tileSegmentWidth, tileSegmentHeight,
-                Math.round(x * tileWidth - view_x + (y % 2) * tileSegmentWidth),
+                Math.round(x * tileWidth - view_x + (y & 1) * tileSegmentWidth),
                 Math.round(y * tileCellHeight - view_y + tileSegmentHeight),
                 tileSegmentWidth, tileSegmentHeight
             );
@@ -151,7 +162,7 @@ function draw() {
             octx.drawImage(
                 backgroundTiles, tile_x + tileSegmentWidth, tile_y + tileSegmentHeight,
                 tileSegmentWidth, tileSegmentHeight,
-                Math.round(x * tileWidth - view_x + (y % 2) * tileSegmentWidth + tileSegmentWidth),
+                Math.round(x * tileWidth - view_x + (y & 1) * tileSegmentWidth + tileSegmentWidth),
                 Math.round(y * tileCellHeight - view_y + tileSegmentHeight),
                 tileSegmentWidth, tileSegmentHeight
             );
@@ -161,7 +172,7 @@ function draw() {
             octx.drawImage(
                 backgroundTiles, tile_x, tile_y + tileSegmentWidth,
                 tileSegmentWidth, tileSegmentHeight,
-                Math.round(x * tileWidth - view_x + (y % 2) * tileSegmentWidth),
+                Math.round(x * tileWidth - view_x + (y & 1) * tileSegmentWidth),
                 Math.round(y * tileCellHeight - view_y + tileCellHeight),
                 tileSegmentWidth, tileSegmentHeight
             );
@@ -171,7 +182,7 @@ function draw() {
             octx.drawImage(
                 backgroundTiles, tile_x + tileSegmentWidth, tile_y + tileSegmentWidth,
                 tileSegmentWidth, tileSegmentHeight,
-                Math.round(x * tileWidth - view_x + (y % 2) * tileSegmentWidth + tileSegmentWidth),
+                Math.round(x * tileWidth - view_x + (y & 1) * tileSegmentWidth + tileSegmentWidth),
                 Math.round(y * tileCellHeight - view_y + tileCellHeight),
                 tileSegmentWidth, tileSegmentHeight
             );
@@ -180,22 +191,22 @@ function draw() {
 
     // draws the... "cursor"? i guess you'd call it?
     octx.lineWidth = 1;
-    octx.strokeStyle = "red";
-    octx.fillStyle = "rgba(255,0,0,0.1)";
+    octx.strokeStyle = "white";
+    octx.fillStyle = "rgba(255,255,255,0.1)";
     if (brushSize == 1) {
         let highlightPath = new Path2D();
         let x = highlightedTile[0], y = highlightedTile[1];
-        highlightPath.moveTo(x * tileWidth + tileSegmentWidth - view_x + (tileCellHeight * (y % 2)),
+        highlightPath.moveTo(x * tileWidth + tileSegmentWidth - view_x + (tileCellHeight * (y & 1)),
             y * tileCellHeight - view_y);
-        highlightPath.lineTo(x * tileWidth + tileWidth - view_x + (tileCellHeight * (y % 2)),
+        highlightPath.lineTo(x * tileWidth + tileWidth - view_x + (tileCellHeight * (y & 1)),
             y * tileCellHeight + tileSegmentHeight - view_y);
-        highlightPath.lineTo(x * tileWidth + tileWidth - view_x + (tileCellHeight * (y % 2)),
+        highlightPath.lineTo(x * tileWidth + tileWidth - view_x + (tileCellHeight * (y & 1)),
             y * tileCellHeight + tileCellHeight - view_y);
-        highlightPath.lineTo(x * tileWidth + tileSegmentWidth - view_x + (tileCellHeight * (y % 2)),
+        highlightPath.lineTo(x * tileWidth + tileSegmentWidth - view_x + (tileCellHeight * (y & 1)),
             y * tileCellHeight + tileHeight - view_y);
-        highlightPath.lineTo(x * tileWidth - view_x + (tileCellHeight * (y % 2)),
+        highlightPath.lineTo(x * tileWidth - view_x + (tileCellHeight * (y & 1)),
             y * tileCellHeight + tileCellHeight - view_y);
-        highlightPath.lineTo(x * tileWidth - view_x + (tileCellHeight * (y % 2)),
+        highlightPath.lineTo(x * tileWidth - view_x + (tileCellHeight * (y & 1)),
             y * tileCellHeight + tileSegmentHeight - view_y);
         highlightPath.closePath();
         octx.stroke(highlightPath);
@@ -211,9 +222,14 @@ function draw() {
     ctx.fillStyle = "#FFF";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(offscreenCanvas, 0, 0);
+    updateDisplay = false;
 }
 
 function findFocus(event) {
+    // this function's purpose is to capture focus when the page first
+    // loads. Necessary because it would usually capture focus when the
+    // cursor enters the canvas area. However, when the page first loads
+    // the cursor may already be inside the canvas area.
     canvas.removeEventListener("mousemove", findFocus);
     mouseEnter(event);
 }
@@ -479,12 +495,12 @@ function paintTiles(mouse_x,mouse_y) {
         let x = center_x - Math.sqrt((radius * radius) - ((center_y - y) * (center_y - y)));
         let end_x = center_x + Math.sqrt((radius * radius) - ((center_y - y) * (center_y - y)));
         while (x < end_x) {
-            x += 64;
+            x+=32;
             let my = y >> 5;
             let mx = (x >> 6) - (my & 1);
             map[mx][my] = brushTile;
         }
-        y+=32;
+        y+=16;
     }
 }
 
