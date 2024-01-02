@@ -1,8 +1,10 @@
+const FPS = 1000 / 60;
+const NEIGHBORS = [[-1, -1], [0, -1], [-1, 0], [1, 0], [-1, 1], [0, 1]];
+
 const backgroundTiles = new Image();
 backgroundTiles.src = "Images/assets/tiles.png";
 const tileWidth = 64, tileHeight = 48;
 const tileNames = ['empty', 'grass', 'dirt', 'stone', 'paved road', 'paved road v2'];
-const FPS = 1000 / 60;
 
 const tileSelectionDropdown = document.getElementById("tile-selection-dropdown");
 tileSelectionDropdown.innerHTML = `<option selected>${tileNames[1]}</option>`;
@@ -16,6 +18,12 @@ tileSelectionDisplay.width = tileWidth;
 tileSelectionDisplay.height = tileHeight;
 const tileSelectionDisplayContext = tileSelectionDisplay.getContext('2d');
 let brushTile = 1;
+
+const toolSelectionDropdown = document.getElementById("tool-selection-dropdown");
+const toolNames = ['brush', 'fill'];
+for (let i = 0; i < toolNames.length; i++) {
+    toolSelectionDropdown.innerHTML += `<option>${toolNames[i]}</option>`;
+}
 
 
 function updateTileSelection(event) {
@@ -31,20 +39,19 @@ function updateTileSelection(event) {
 }
 
 const brushSizeSlider = document.getElementById("size-slider");
-brushSizeSlider.addEventListener("change", updateBrushSize);
-let brushSize = brushSizeSlider.value;
-function updateBrushSize(event) {
-    brushSize = brushSizeSlider.value;
-}
 
 let mapWidth = 80;
 let mapHeight = 80;
 let map = [];
+let undo_map = [];
 for (let x = 0; x < mapWidth; x++) {
     map.push([]);
+    undo_map.push([]);
     for (let y = 0; y < mapHeight; y++) {
         // fill the map with noise.
-        map[x].push(Math.round(0.5 + noise(x / 8, y / 8) * 3));
+        let n = Math.round(0.5 + noise(x / 8, y / 8) * 3);
+        map[x].push(n);
+        undo_map[x].push(n)
     }
 }
 
@@ -78,7 +85,6 @@ octx.imageSmoothingEnabled = false;
 
 // setup input 
 let pressedKeys = {};
-let mouseIsPressed = false;
 let mouse_x = 0, mouse_y = 0;
 let updateDisplay = false;
 
@@ -210,7 +216,8 @@ function draw() {
     octx.lineWidth = 1;
     octx.strokeStyle = "white";
     octx.fillStyle = "rgba(255,255,255,0.1)";
-    if (brushSize == 1) {
+    const brushSize = brushSizeSlider.value;
+    if ((brushSize == 1) || (toolSelectionDropdown.selectedIndex == 1)) {
         let highlightPath = new Path2D();
         let x = highlightedTile[0], y = highlightedTile[1];
         highlightPath.moveTo(x * tileWidth + tileSegmentWidth - view_x + (tileCellHeight * (y & 1)),
@@ -290,8 +297,10 @@ function mapLinePixelsToTileGrid(x1, y1, x2, y2) {
     // I can't recommend the book enough, you can download and read it for free at
     // https://github.com/jagregory/abrash-black-book
 
+    const brushSize = brushSizeSlider.value;
+
     if ((x1 == x2) && (y1 == y2)) { // line is actually a point
-        paintTiles(x1, y1);
+        paintTiles(x1, y1, brushSize);
         return;
     }
     
@@ -376,21 +385,21 @@ function mapLinePixelsToTileGrid(x1, y1, x2, y2) {
     switch (lineMode) {
         case 0: // vertical
             while (y < end_y) {
-                paintTiles(x, y);
+                paintTiles(x, y, brushSize);
                 y += tileCellHeight;
             }
             break;
 
         case 1: // horizontal
             while (x < end_x) {
-                paintTiles(x, y);
+                paintTiles(x, y, brushSize);
                 x += tileWidth;
             }
             break;
 
         case 2: // diagonal / deltax == deltay
             while (x < end_x) {
-                paintTiles(x, y);
+                paintTiles(x, y, brushSize);
                 x += 32;
                 y += 32;
             }
@@ -402,7 +411,7 @@ function mapLinePixelsToTileGrid(x1, y1, x2, y2) {
             let deltaYx2 = deltaY * 2;
             let deltaYx2MinusDeltaXx2 = deltaY - (deltaX * 2);
             errorTerm = deltaYx2 - deltaX;
-            paintTiles(x, y);
+            paintTiles(x, y, brushSize);
             while (deltaX--) {
                 if (errorTerm >= 0) {
                     y++;
@@ -411,7 +420,7 @@ function mapLinePixelsToTileGrid(x1, y1, x2, y2) {
                     errorTerm += deltaYx2;
                 }
                 x += xDirection;
-                paintTiles(x, y);
+                paintTiles(x, y, brushSize);
             }
             break;
 
@@ -422,7 +431,7 @@ function mapLinePixelsToTileGrid(x1, y1, x2, y2) {
             let deltaXx2 = deltaX * 2;
             let deltaXx2MinusDeltaYx2 = deltaXx2 - (deltaY * 2);
             errorTerm = deltaXx2 - deltaY;
-            paintTiles(x, y);
+            paintTiles(x, y, brushSize);
             while (deltaY--) {
                 if (errorTerm >= 0) {
                     x += xDirection;
@@ -431,7 +440,7 @@ function mapLinePixelsToTileGrid(x1, y1, x2, y2) {
                     errorTerm += deltaXx2;
                 }
                 y++;
-                paintTiles(x, y);
+                paintTiles(x, y, brushSize);
             }
             break;
 
@@ -471,7 +480,18 @@ function mouseMove(event) {
     highlightTile(mouse_x, mouse_y);
 
     if ((event.buttons & 1) == 1) { // is mouse button pressed?
-        mapLinePixelsToTileGrid(prevMouse_x, prevMouse_y, mouse_x, mouse_y);
+        switch (toolSelectionDropdown.selectedIndex) {
+            case 0: // brush
+                mapLinePixelsToTileGrid(prevMouse_x, prevMouse_y, mouse_x, mouse_y);
+                break;
+            case 1: // fill
+                let ty = (view_y + mouse_y) >> 5;
+                let tx = (view_x + mouse_x - (32 * (ty & 1))) >> 6;
+                let tile = map[tx][ty];
+                if (tile == brushTile) break;
+                bucketPaint(tx, ty, tile);
+                break;
+        }
     }
 
     if ((event.buttons & 4) == 4) { // is middle mouse pressed?
@@ -479,7 +499,7 @@ function mouseMove(event) {
     }
 }
 
-function paintTiles(mouse_x,mouse_y) {
+function paintTiles(mouse_x,mouse_y, brushSize) {
     if (brushSize == 1) {
         const tile_y = (view_y + mouse_y) >> 5;
         const tile_x = (view_x + mouse_x - (32 * (tile_y & 1))) >> 6;
@@ -509,12 +529,48 @@ function paintTiles(mouse_x,mouse_y) {
     return;
 }
 
+function bucketPaint(x, y, tile) {
+    map[x][y] = brushTile;
+    for (let i = 0; i < NEIGHBORS.length; i++) {
+        let ny = y + NEIGHBORS[i][1];
+        if (ny < 0 || ny >= mapHeight) continue;
+        let nx = x + NEIGHBORS[i][0] + (y & 1);
+        if (nx < 0 || nx >= mapWidth) continue;
+        if (map[nx][ny] != tile) continue;
+        if ((nx == x) && (ny == y)) continue;
+        bucketPaint(nx, ny, tile);
+    }
+    return;
+}
 /*
 function mouseWheel(event) {
 
 }
 */
 
+function undo() {
+    let ia = map.length;
+    while (ia--) {
+        let ib = map[ia].length;
+        while (ib--) {
+            let tmp = map[ia][ib];
+            map[ia][ib] = undo_map[ia][ib];
+            undo_map[ia][ib] = tmp;
+        }
+    }
+    updateDisplay = true;
+    return;
+}
+function saveMapToUndo() {
+    let ia = map.length;
+    while (ia--) {
+        let ib = map[ia].length;
+        while (ib--) {
+            undo_map[ia][ib] = map[ia][ib];
+        }
+    }
+    return;
+}
 function keyDown(event) {
     event.preventDefault();
     pressedKeys[event.key] = true;
@@ -522,18 +578,22 @@ function keyDown(event) {
 
 function keyUp(event) {
     event.preventDefault();
+    if ((event.key == "z") && (pressedKeys["Control"])) {
+        undo();
+    }
     pressedKeys[event.key] = false;
 }
 
 function mouseDown(event) {
+    if ((event.buttons & 1) == 1) {
+        saveMapToUndo();
+    }
     event.preventDefault();
-    mouseIsPressed = true;
     mouseMove(event);
 }
 
 function mouseUp(event) {
     event.preventDefault();
-    mouseIsPressed = false;
 }
 
 /* TO BE IMPLEMENTED
