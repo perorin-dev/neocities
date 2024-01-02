@@ -534,7 +534,8 @@ function bucketPaint(x, y, tile) {
     for (let i = 0; i < NEIGHBORS.length; i++) {
         let ny = y + NEIGHBORS[i][1];
         if (ny < 0 || ny >= mapHeight) continue;
-        let nx = x + NEIGHBORS[i][0] + (y & 1);
+        let nx = x + NEIGHBORS[i][0];
+        if ((y & 1) && (y != ny)) nx++;
         if (nx < 0 || nx >= mapWidth) continue;
         if (map[nx][ny] != tile) continue;
         if ((nx == x) && (ny == y)) continue;
