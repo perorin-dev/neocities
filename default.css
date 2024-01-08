@@ -6,6 +6,9 @@ html {
     /*image-rendering: pixelated;*/
     font-family: mplus, sans-serif;
 }
+body {
+    background-image: url('Images/Walls/tiny walls/tiny-bg-3colors-nonoise-roundededges-03.png');
+}
 a {
     color: #95eccb;
     text-decoration:unset;

@@ -1,17 +1,26 @@
+// constants
+
 const FPS = 1000 / 60;
 const NEIGHBORS = [[-1, -1], [0, -1], [-1, 0], [1, 0], [-1, 1], [0, 1]];
+const TWOPI = Math.PI * 2;
 
+// load images, need to find a more general way to do this
+// for when I have more than just the single tileset
 const backgroundTiles = new Image();
 backgroundTiles.src = "Images/assets/tiles.png";
 const tileWidth = 64, tileHeight = 48;
 const tileNames = ['empty', 'grass', 'dirt', 'stone', 'paved road', 'paved road v2'];
 
+
+// object tool html stuff
+// end object tool html stuff
+
+// Paint tab html stuff
 const tileSelectionDropdown = document.getElementById("tile-selection-dropdown");
 tileSelectionDropdown.innerHTML = `<option selected>${tileNames[1]}</option>`;
 for (let i = 2; i < tileNames.length; i++) {
     tileSelectionDropdown.innerHTML += `<option>${tileNames[i]}</option>`;
 }
-tileSelectionDropdown.addEventListener("change", updateTileSelection);
 
 const tileSelectionDisplay = document.getElementById("tile-selection-display");
 tileSelectionDisplay.width = tileWidth;
@@ -24,21 +33,74 @@ const toolNames = ['brush', 'fill'];
 for (let i = 0; i < toolNames.length; i++) {
     toolSelectionDropdown.innerHTML += `<option>${toolNames[i]}</option>`;
 }
+const highlightedTileDisplay = document.getElementById("highlighted-tile-display");
+const brushSizeSlider = document.getElementById("size-slider");
 
+// end paint tab html stuff
 
-function updateTileSelection(event) {
-    brushTile = tileSelectionDropdown.selectedIndex + 1;
-    tileSelectionDisplayContext.clearRect(0, 0, tileWidth, tileHeight);
-    tileSelectionDisplayContext.drawImage(
-        backgroundTiles,
-        brushTile * tileWidth, 0,
-        tileWidth, tileHeight,
-        0, 0,
-        tileWidth, tileHeight
+// sidebar tabs switching
+
+class sidebarTab {
+    constructor(name, toolElements, enabled=false) {
+        this.name = name;
+        this.buttonElement = document.getElementById(name);
+        this.toolElements = toolElements;
+        this.enabled = enabled;
+    }
+}
+const sidebarTabs = [
+    new sidebarTab(
+        "map-edit-tab",
+        []
+    ),
+    new sidebarTab(
+        "paint-mode-tab",
+        document.getElementsByClassName("paint-tab"),
+        enabled = true
+    ),
+    new sidebarTab(
+        "object-mode-tab",
+        []
+    )
+];
+
+for (let i = 0; i < sidebarTabs.length; i++) {
+    sidebarTabs[i].buttonElement.addEventListener(
+        "click",
+        function () { switchSidebarTab(i) }
     );
 }
+function switchSidebarTab(tabIndex) {
+    // disable elements of previously selected tab, then enable
+    // the elements of the tab that's been switched to
+    // this may lead to issues down the road if I add any elements
+    // to the sidebar that wouldn't use the "flex" display
+    for (let i = 0; i < sidebarTabs.length; i++) {
+        if (sidebarTabs[i].enabled) {
+            sidebarTabs[i].enabled = false;
+            for (let element = 0; element < sidebarTabs[i].toolElements.length; element++) {
+                // all these dots... yucky...
+                sidebarTabs[i].toolElements[element].style.display = "none";
+            }
+            // i imagine there's a more standard way to do this
+            for (let attr of sidebarTabs[i].buttonElement.attributes) {
+                if (attr.name == "selected") {
+                    attr.value = "false";
+                }
+            }
+        }
+    }
+    sidebarTabs[tabIndex].enabled = true;
+    for (let i = 0; i < sidebarTabs[tabIndex].toolElements.length; i++) {
+        sidebarTabs[tabIndex].toolElements[i].style.display = "flex";
+    }
+    for (let attr of sidebarTabs[tabIndex].buttonElement.attributes) {
+        if (attr.name == "selected") attr.value = "true";
+    }
+}
 
-const brushSizeSlider = document.getElementById("size-slider");
+
+// setup map
 
 let mapWidth = 80;
 let mapHeight = 80;
@@ -76,7 +138,6 @@ const tileCellHeight = tileSegmentHeight * 2;
 const canvas = document.getElementById("display");
 //scale = 1;
 let highlightedTile = [0, 0];
-const highlightedTileDisplay = document.getElementById("highlighted-tile-display");
 const viewSpeed = 7;
 const ctx = canvas.getContext("2d");
 const offscreenCanvas = new OffscreenCanvas(canvas.width, canvas.height);
@@ -88,21 +149,27 @@ let pressedKeys = {};
 let mouse_x = 0, mouse_y = 0;
 let updateDisplay = false;
 
-// prevent the map from being too small
-if (mapWidth < canvas.width / tileWidth) {
-    mapWidth = Math.round(canvas.width / tileWidth);
-}
-if (mapHeight < canvas.height / tileHeight) {
-    mapHeight = Math.round(canvas.height / tileHeight);
+function expandMapToCanvasSize() {
+    // prevent the map from being too small
+    // will likely remove this function once
+    // I make a sidebar for general map settings
+    if (mapWidth < canvas.width / tileWidth) {
+        mapWidth = Math.round(canvas.width / tileWidth);
+    }
+    if (mapHeight < canvas.height / tileHeight) {
+        mapHeight = Math.round(canvas.height / tileHeight);
+    }
 }
 // grandpa's function
-function onImageLoad() {
-    updateTileSelection(null);
+function onLoad() {
+    tileSelectionDropdown.addEventListener("change", updateTileSelection);
     canvas.addEventListener("onresize", resizeCanvas);
     window.addEventListener("resize", resizeCanvas);
     canvas.addEventListener("mousemove", findFocus);
     canvas.addEventListener("mouseenter", mouseEnter);
+    updateTileSelection(null);
     resizeCanvas();
+    expandMapToCanvasSize();
     setInterval(update, FPS);
 }
 
@@ -237,7 +304,7 @@ function draw() {
         octx.fill(highlightPath);
     } else {
         octx.beginPath();
-        octx.ellipse(mouse_x, mouse_y, brushSize / 20 * tileWidth, brushSize / 20 * tileWidth, 0, 0, Math.PI * 2);
+        octx.ellipse(mouse_x, mouse_y, brushSize / 20 * tileWidth, brushSize / 20 * tileWidth, 0, 0, TWOPI);
         octx.stroke();
         octx.fill();
     }
@@ -279,7 +346,6 @@ function mouseEnter(event) {
 
 function mouseLeave() {
     canvas.removeEventListener("mousemove", mouseMove);
-    //window.removeEventListener("keyup", keyUp);
     window.removeEventListener("keydown", keyDown);
     //canvas.removeEventListener("wheel", mouseWheel);
     canvas.removeEventListener("mousedown", mouseDown);
@@ -397,7 +463,7 @@ function mapLinePixelsToTileGrid(x1, y1, x2, y2) {
             }
             break;
 
-        case 2: // diagonal / deltax == deltay
+        case 2: // diagonal, deltax == deltay
             while (x < end_x) {
                 paintTiles(x, y, brushSize);
                 x += 32;
@@ -489,7 +555,7 @@ function mouseMove(event) {
                 let tx = (view_x + mouse_x - (32 * (ty & 1))) >> 6;
                 let tile = map[tx][ty];
                 if (tile == brushTile) break;
-                bucketPaint(tx, ty, tile);
+                paintFill(tx, ty, tile);
                 break;
         }
     }
@@ -497,6 +563,19 @@ function mouseMove(event) {
     if ((event.buttons & 4) == 4) { // is middle mouse pressed?
         panView(prevMouse_x, prevMouse_y, mouse_x, mouse_y);
     }
+}
+function updateTileSelection(event) {
+    // changes the tile to paint when the user selects a new
+    // one from the tile selection dropdown
+    brushTile = tileSelectionDropdown.selectedIndex + 1;
+    tileSelectionDisplayContext.clearRect(0, 0, tileWidth, tileHeight);
+    tileSelectionDisplayContext.drawImage(
+        backgroundTiles,
+        brushTile * tileWidth, 0,
+        tileWidth, tileHeight,
+        0, 0,
+        tileWidth, tileHeight
+    );
 }
 
 function paintTiles(mouse_x,mouse_y, brushSize) {
@@ -529,7 +608,8 @@ function paintTiles(mouse_x,mouse_y, brushSize) {
     return;
 }
 
-function bucketPaint(x, y, tile) {
+function paintFill(x, y, tile) {
+    // 
     map[x][y] = brushTile;
     for (let i = 0; i < NEIGHBORS.length; i++) {
         let ny = y + NEIGHBORS[i][1];
@@ -539,7 +619,7 @@ function bucketPaint(x, y, tile) {
         if (nx < 0 || nx >= mapWidth) continue;
         if (map[nx][ny] != tile) continue;
         if ((nx == x) && (ny == y)) continue;
-        bucketPaint(nx, ny, tile);
+        paintFill(nx, ny, tile);
     }
     return;
 }
@@ -583,6 +663,9 @@ function keyUp(event) {
         undo();
     }
     pressedKeys[event.key] = false;
+    if (hasEventListener(canvas,"mouseenter",mouseEnter)) {
+        canvas.removeEventListener("keyup", keyUp);
+    }
 }
 
 function mouseDown(event) {
@@ -645,4 +728,4 @@ function update() {
     draw();
 }
 
-window.addEventListener("load", onImageLoad);
+window.addEventListener("load", onLoad);
