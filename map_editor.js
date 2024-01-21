@@ -1,5 +1,3 @@
-// constants
-
 const FPS = 1000 / 60;
 const NEIGHBORS = [[-1, -1], [0, -1], [-1, 0], [1, 0], [-1, 1], [0, 1]];
 const TWOPI = Math.PI * 2;
@@ -11,6 +9,18 @@ backgroundTiles.src = "Images/assets/tiles.png";
 const tileWidth = 64, tileHeight = 48;
 const tileNames = ['empty', 'grass', 'dirt', 'stone', 'paved road', 'paved road v2'];
 
+// map sidebar html stuff
+const mapNewButton    = document.getElementById("map-new-button");
+const mapImportButton = document.getElementById("map-import-button");
+const mapExportButton = document.getElementById("map-export-button");
+const mapWidthInput   = document.getElementById("map-width-input");
+const mapHeightInput  = document.getElementById("map-height-input");
+const mapResizeButton = document.getElementById("map-set-size-button");
+mapNewButton.addEventListener("click", mapNew);
+mapImportButton.addEventListener("change", function (event) { mapImport(event) });
+mapExportButton.addEventListener("click", mapExport);
+mapResizeButton.addEventListener("click", mapResize);
+// end map sidebar html stuff
 
 // object tool html stuff
 // end object tool html stuff
@@ -51,7 +61,7 @@ class sidebarTab {
 const sidebarTabs = [
     new sidebarTab(
         "map-edit-tab",
-        []
+        document.getElementsByClassName("map-tab-container")
     ),
     new sidebarTab(
         "paint-mode-tab",
@@ -105,15 +115,16 @@ function switchSidebarTab(tabIndex) {
 let mapWidth = 80;
 let mapHeight = 80;
 let map = [];
-let undo_map = [];
+let undoMap = [];
+// map[x][y]
 for (let x = 0; x < mapWidth; x++) {
     map.push([]);
-    undo_map.push([]);
+    undoMap.push([]);
     for (let y = 0; y < mapHeight; y++) {
         // fill the map with noise.
         let n = Math.round(0.5 + noise(x / 8, y / 8) * 3);
         map[x].push(n);
-        undo_map[x].push(n)
+        undoMap[x].push(n)
     }
 }
 
@@ -170,6 +181,8 @@ function onLoad() {
     updateTileSelection(null);
     resizeCanvas();
     expandMapToCanvasSize();
+    switchSidebarTab(0);
+    switchSidebarTab(1);
     setInterval(update, FPS);
 }
 
@@ -182,6 +195,8 @@ function hasEventListener(element, eventType, callback) {
 }
 
 function resizeCanvas() {
+    // Weird bug exists that results in scaled images. not sure how
+    // it works....
     const style = getComputedStyle(canvas);
     canvas.width = 300; canvas.height = 150;
     let w = parseInt(style.getPropertyValue("width"), 10);
@@ -279,7 +294,17 @@ function draw() {
         }
     }
 
-    // draws the... "cursor"? i guess you'd call it?
+    drawPaintCursor();
+
+    // finally, draw it all to the actual screen
+    ctx.fillStyle = "#FFF";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(offscreenCanvas, 0, 0);
+    updateDisplay = false;
+}
+
+function drawPaintCursor() {
+    if (!sidebarTabs[1].enabled) return;
     octx.lineWidth = 1;
     octx.strokeStyle = "white";
     octx.fillStyle = "rgba(255,255,255,0.1)";
@@ -308,14 +333,8 @@ function draw() {
         octx.stroke();
         octx.fill();
     }
-
-    // finally, draw it all to the actual screen
-    ctx.fillStyle = "#FFF";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(offscreenCanvas, 0, 0);
-    updateDisplay = false;
+    return;
 }
-
 function findFocus(event) {
     // this function's purpose is to capture focus when the page first
     // loads. Necessary because it would usually capture focus when the
@@ -518,6 +537,7 @@ function mapLinePixelsToTileGrid(x1, y1, x2, y2) {
 function panView(px, py, cx, cy) {
     view_x -= cx - px;
     view_y -= cy - py;
+    boundView();
     updateDisplay = true;
     return;
 }
@@ -543,20 +563,22 @@ function mouseMove(event) {
     mouse_x = event.offsetX;
     mouse_y = event.offsetY;
 
-    highlightTile(mouse_x, mouse_y);
 
-    if ((event.buttons & 1) == 1) { // is mouse button pressed?
-        switch (toolSelectionDropdown.selectedIndex) {
-            case 0: // brush
-                mapLinePixelsToTileGrid(prevMouse_x, prevMouse_y, mouse_x, mouse_y);
-                break;
-            case 1: // fill
-                let ty = (view_y + mouse_y) >> 5;
-                let tx = (view_x + mouse_x - (32 * (ty & 1))) >> 6;
-                let tile = map[tx][ty];
-                if (tile == brushTile) break;
-                paintFill(tx, ty, tile);
-                break;
+    if (sidebarTabs[1].enabled) {
+        highlightTile(mouse_x, mouse_y);
+        if ((event.buttons & 1) == 1) { // is mouse button pressed?
+            switch (toolSelectionDropdown.selectedIndex) {
+                case 0: // brush
+                    mapLinePixelsToTileGrid(prevMouse_x, prevMouse_y, mouse_x, mouse_y);
+                    break;
+                case 1: // fill
+                    let ty = (view_y + mouse_y) >> 5;
+                    let tx = (view_x + mouse_x - (32 * (ty & 1))) >> 6;
+                    let tile = map[tx][ty];
+                    if (tile == brushTile) break;
+                    paintFill(tx, ty, tile);
+                    break;
+            }
         }
     }
 
@@ -635,8 +657,8 @@ function undo() {
         let ib = map[ia].length;
         while (ib--) {
             let tmp = map[ia][ib];
-            map[ia][ib] = undo_map[ia][ib];
-            undo_map[ia][ib] = tmp;
+            map[ia][ib] = undoMap[ia][ib];
+            undoMap[ia][ib] = tmp;
         }
     }
     updateDisplay = true;
@@ -647,7 +669,7 @@ function saveMapToUndo() {
     while (ia--) {
         let ib = map[ia].length;
         while (ib--) {
-            undo_map[ia][ib] = map[ia][ib];
+            undoMap[ia][ib] = map[ia][ib];
         }
     }
     return;
@@ -680,18 +702,6 @@ function mouseUp(event) {
     event.preventDefault();
 }
 
-/* TO BE IMPLEMENTED
-* 
-* function importMap() {
-* 
-* }
-* 
-* function exportMap() {
-* 
-* }
-* 
-*/
-
 function handleKeyboard() {
     let offsetX = 0, offsetY = 0;
     if (pressedKeys['w']) {
@@ -722,9 +732,99 @@ function boundView() {
     }
 }
 
+function mapResize() {
+    if (!window.confirm("Are you sure you want to resize the map? This cannot be undone.") ){
+        return;
+    }
+    let newWidth = mapWidthInput.value;
+    let newHeight = mapHeightInput.value;
+    let deltaY = mapHeight - newHeight;
+    console.log(deltaY);
+    let deltaX = mapWidth - newWidth;
+    let tmp = []
+    let tmpUndo = [];
+    let y = 0, x = 0, oy = Math.floor(deltaY / 2), ox = Math.floor(deltaX / 2);
+    while (x < newWidth) {
+        tmp.push([]);
+        tmpUndo.push([]);
+        while (y < newHeight) {
+            if (oy >= 0 && oy < mapHeight && ox >= 0 && ox < mapWidth) {
+                tmp[x].push(map[ox][oy]);
+                tmpUndo[x].push(map[ox][oy]);
+            } else {
+                tmp[x].push(0);
+                tmpUndo[x].push(0);
+            }
+            y++; oy++;
+        }
+        x++; ox++;
+        oy = Math.floor(deltaY / 2);
+        y = 0;
+    }
+    mapWidth = newWidth; mapHeight = newHeight;
+    map = tmp;
+    undoMap = tmpUndo;
+    updateDisplay = true;
+}
+
+function mapNew() {
+    const width = Math.floor(Math.abs(Number(window.prompt("New map width:", "80"))));
+    const height = Math.floor(Math.abs(Number(window.prompt("New map height:", "80"))));
+    const fill = Math.floor(Math.abs(Number(window.prompt("Fill with? 0 for noise.", "0"))));
+    mapWidth = width; mapHeight = height;
+    let tmp = [];
+    let tmpUndo = [];
+    let x = 0, y = 0;
+    if (fill > tileNames.length-1) fill = tileNames.length-1;
+    let n = fill;
+    while (x < width) {
+        tmp.push([]);
+        tmpUndo.push([]);
+        while (y < height) {
+            if (!fill) {
+                n = Math.round(0.5 + noise(x / 8, y / 8) * 3);
+            }
+            tmp[x].push(n);
+            tmpUndo[x].push(n)
+            y++
+        }
+        y = 0;
+        x++;
+    }
+    map = tmp;
+    undoMap = tmpUndo;
+    boundView();
+    updateDisplay = true;
+}
+
+function mapImport(e) {
+    const selected_file = e.target.files[0];
+    if (selected_file) {
+        const reader = new FileReader();
+        reader.onload = function (ee) {
+            const jsn = JSON.parse(ee.target.result);
+            mapWidth = jsn.mapWidth;
+            mapHeight = jsn.mapHeight;
+            map = jsn.map;
+            updateDisplay = true;
+        }
+        reader.readAsText(selected_file);
+    }
+}
+function mapExport() {
+    const mapData = {
+        mapWidth: mapWidth,
+        mapHeight: mapHeight,
+        map: map
+    }
+    const mapBlob = new Blob([JSON.stringify(mapData)]);
+    let a = document.createElement("a");
+    a.href = URL.createObjectURL(mapBlob);
+    a.download = "map.json";
+    a.click();
+}
 function update() {
     handleKeyboard();
-    boundView();
     draw();
 }
 

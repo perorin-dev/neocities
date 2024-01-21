@@ -40,6 +40,29 @@
                                 <button class="sidebar-tab-button" id="object-mode-tab" selected="false">object</button>
                             </div>
                             <div id="sidebar">
+                                <!-- map tab -->
+                                <div class="map-tab-container">
+                                    <div class="map-tab">
+                                        <button class="sidebar-tab-button" id="map-new-button">new</button>
+                                        <label for="map-import-button" class="sidebar-tab-button">import</label>
+                                        <input type="file" id="map-import-button"/>
+                                        <button class="sidebar-tab-button" id="map-export-button">export</button>
+                                    </div>
+                                    <div class="map-tab" id="map-dimensions-inputs">
+                                        <div>
+                                            <label for="map-width-input">map width: </label>
+                                            <input class="number" id="map-width-input" value="80"></input>
+                                        </div>
+                                        <div>
+                                            <label for="map-height-input">map height: </label>
+                                            <input class="number" id="map-height-input" value="80"></input>
+                                        </div>
+                                        <div>
+                                            <button class="sidebar-tab-button" id="map-set-size-button">set map size</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- paint tab -->
                                 <div class="paint-tab" >
                                     <label for="tool-selection-dropdown">paint tool:</label>
                                     <select id="tool-selection-dropdown"></select>
@@ -53,15 +76,16 @@
                                     <input type="range" min="1" max="100" value="1" class="slider" id="size-slider" />
                                 </div>
                                 <p class="paint-tab" id="highlighted-tile-display">x: <br />y: <br />value: </p>
+                                <!-- object tab -->
                             </div>
                         </div>
                     </div>
                     <div id="information">
                         <p>
                             Hold the middle mouse button and drag or use the WASD keys to pan the view.<br />
+                            Press ctrl+z to undo.<br />
                             Use the dropdown to select the type of tile you wish to paint.<br />
                             Use the left mouse button to paint tiles.<br />
-                            You can use the small button beneath the site navigation section to hide it if you want more space.<br />
                         </p>
                     </div>
                 </div>
