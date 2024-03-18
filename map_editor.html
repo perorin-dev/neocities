@@ -7,7 +7,7 @@
     <title>perorin's pit</title>
     <meta name="viewport" content="width=device, initial-scale=1.0" />
     <link rel="stylesheet" href="default.css?v=0" />
-    <link rel="stylesheet" href="map_editor.css?v=0" />
+    <link rel="stylesheet" href="map_editor.css?v=1" />
 </head>
 <body>
     <img id="background-image" 
@@ -21,7 +21,7 @@
                 <nav id="nav-section">
                     <a href="index.html?v=0">home</a>
                     <a href="ideas.html?v=0">ideas</a>
-                    <a id="current-page" href="map_editor.html?v=0">map editor</a>
+                    <a id="current-page" href="map_editor.html?v=1">map editor</a>
                     <a href="ascii-lineart-generator.html?v=0">ascii lineart generator</a>
                     <a href="markov.html?v=0">markov chain</a>
                     <a href="https://github.com/perorin-dev">github</a>
@@ -41,23 +41,23 @@
                             </div>
                             <div id="sidebar">
                                 <!-- map tab -->
-                                <div class="map-tab-container">
-                                    <div class="map-tab">
-                                        <button class="sidebar-tab-button" id="map-new-button">new</button>
-                                        <label for="map-import-button" class="sidebar-tab-button">import</label>
+                                <div class="map-tab map-tab-container">
+                                    <div class="map-tab" id="map-file-buttons">
+                                        <button class="sidebar-tab-button map-file-button" id="map-new-button">new</button>
+                                        <label for="map-import-button" class="sidebar-tab-button map-file-button" style="text-align:center;">import</label>
                                         <input type="file" id="map-import-button"/>
-                                        <button class="sidebar-tab-button" id="map-export-button">export</button>
+                                        <button class="sidebar-tab-button map-file-button" id="map-export-button">export</button>
                                     </div>
                                     <div class="map-tab" id="map-dimensions-inputs">
-                                        <div>
+                                        <div class="map-dimension-input">
                                             <label for="map-width-input">map width: </label>
                                             <input class="number" id="map-width-input" value="80"></input>
                                         </div>
-                                        <div>
+                                        <div class="map-dimension-input">
                                             <label for="map-height-input">map height: </label>
                                             <input class="number" id="map-height-input" value="80"></input>
                                         </div>
-                                        <div>
+                                        <div class="map-dimension-input">
                                             <button class="sidebar-tab-button" id="map-set-size-button">set map size</button>
                                         </div>
                                     </div>
@@ -77,6 +77,29 @@
                                 </div>
                                 <p class="paint-tab" id="highlighted-tile-display">x: <br />y: <br />value: </p>
                                 <!-- object tab -->
+                                <div class="object-tab" id="object-tab-container">
+                                    <div id="objects-title">objects:</div>
+                                    <select size="10" id="object-list"></select>
+                                    <div class="object-button-container">
+                                        <button class="sidebar-tab-button object-button" id="object-new-button">new</button>
+                                        <button class="sidebar-tab-button object-button" id="object-delete-button">delete</button>
+                                    </div>
+                                    <div id="components-title">components:</div>
+                                    <select id="object-components-list" size="10"></select>
+                                    <div class="object-button-container">
+                                        <button class="sidebar-tab-button object-button" id="object-component-add-button">add</button>
+                                        <button class="sidebar-tab-button object-button" id="object-component-edit-button">edit</button>
+                                        <button class="sidebar-tab-button object-button" id="object-component-remove-button">remove</button>
+                                    </div>
+                                    <div id="values-title">component values:</div>
+                                    <select id="object-values-list" size="10"></select>
+                                    <div class="object-button-container">
+                                        <button class="sidebar-tab-button object-button" id="object-value-add-button">add</button>
+                                        <button class="sidebar-tab-button object-button" id="object-value-edit-button">edit</button>
+                                        <button class="sidebar-tab-button object-button" id="object-value-remove-button">remove</button>
+                                    </div>
+                                    <select id="object-sprite-selection"></select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -93,7 +116,7 @@
         </div>
     </div>
     <script src="perlin.js" type="text/javascript"></script>
-    <script src="map_editor.js?v=0" type="text/javascript"></script>
+    <script src="map_editor.js?v=1" type="text/javascript"></script>
     <script src="collapse-nav.js?v=0" type="text/javascript"></script>
 </body>
 </html>

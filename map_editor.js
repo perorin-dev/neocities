@@ -22,14 +22,12 @@ mapExportButton.addEventListener("click", mapExport);
 mapResizeButton.addEventListener("click", mapResize);
 // end map sidebar html stuff
 
-// object tool html stuff
-// end object tool html stuff
 
 // Paint tab html stuff
 const tileSelectionDropdown = document.getElementById("tile-selection-dropdown");
-tileSelectionDropdown.innerHTML = `<option selected>${tileNames[1]}</option>`;
+tileSelectionDropdown.innerHTML = `<option selected>${tileNames[1]}</option>\n`;
 for (let i = 2; i < tileNames.length; i++) {
-    tileSelectionDropdown.innerHTML += `<option>${tileNames[i]}</option>`;
+    tileSelectionDropdown.innerHTML += `<option>${tileNames[i]}</option>\n`;
 }
 
 const tileSelectionDisplay = document.getElementById("tile-selection-display");
@@ -41,12 +39,201 @@ let brushTile = 1;
 const toolSelectionDropdown = document.getElementById("tool-selection-dropdown");
 const toolNames = ['brush', 'fill'];
 for (let i = 0; i < toolNames.length; i++) {
-    toolSelectionDropdown.innerHTML += `<option>${toolNames[i]}</option>`;
+    toolSelectionDropdown.innerHTML += `<option>${toolNames[i]}</option>\n`;
 }
 const highlightedTileDisplay = document.getElementById("highlighted-tile-display");
 const brushSizeSlider = document.getElementById("size-slider");
 
 // end paint tab html stuff
+
+// object tool html stuff
+const objectSelection = document.getElementById("object-list");
+const objectNewButton = document.getElementById("object-new-button");
+const objectDeleteButton = document.getElementById("object-delete-button");
+const objectComponentsSelection = document.getElementById("object-components-list");
+const objectComponentAddButton = document.getElementById("object-component-add-button");
+const objectComponentEditButton = document.getElementById("object-component-edit-button");
+const objectComponentRemoveButton = document.getElementById("object-component-remove-button");
+const objectValueSelection = document.getElementById("object-values-list");
+const objectValueAddButton = document.getElementById("object-value-add-button");
+const objectValueEditButton = document.getElementById("object-value-edit-button");
+const objectValueRemoveButton = document.getElementById("object-value-remove-button");
+const objectSpriteSelection = document.getElementById("object-sprite-selection");
+
+objectValueRemoveButton.addEventListener("click", objectValueRemove);
+function objectValueRemove() {
+    let selectedComponent = getSelectedComponent();
+    if (selectedComponent != null) {
+        delete selectedComponent.values[getSelectedKey()];
+        objectValueSelectionUpdate();
+    }
+}
+
+objectValueEditButton.addEventListener("click", objectValueEdit);
+function objectValueEdit() {
+    let newValue = window.prompt();
+    let selectedComponent = getSelectedComponent();
+    selectedComponent.values[getSelectedKey()] = newValue;
+    objectValueSelectionUpdate();
+}
+objectValueAddButton.addEventListener("click", objectValueAdd);
+function objectValueAdd() {
+    let valueName = window.prompt("New value name?");
+    if (valueName == "") {
+        console.log('empty value name\n');
+        return;
+    }
+    let valueValue = window.prompt("New value value?"); //heh
+    if (valueValue == "") {
+        console.log('empty value value\n')
+        return;
+    }
+    let selectedComponent = getSelectedComponent();
+    if (contains(Object.keys(selectedComponent.values), valueName)) {
+        console.log(`${selectedComponent.name} already contains ${valueName}\n`);
+    } else {
+        selectedComponent.values[valueName] = valueValue;
+        objectValueSelectionUpdate();
+    }
+}
+function objectValueSelectionUpdate() {
+    let selectedComponent = getSelectedComponent();
+    objectValueSelection.innerHTML = "";
+    if (selectedComponent == null) return;
+    for (let i = 0; i < Object.keys(selectedComponent.values).length; i++) {
+        objectValueSelection.innerHTML += `<option>${Object.keys(selectedComponent.values)[i]} | ${selectedComponent.values[Object.keys(selectedComponent.values)[i]]}\n`;
+    }
+}
+objectComponentEditButton.addEventListener("click", objectComponentEdit);
+function objectComponentEdit() {
+    let selectedComponent = getSelectedComponent();
+    if (selectedComponent == null) return;
+    let newName = window.prompt("New component name?");
+    if (newName != "") {
+        selectedComponent.name = newName;
+        for (let i = 0; i < objectComponentsSelection.length; i++) {
+            if (objectComponentsSelection.options[i].text == newName) {
+                objectComponentsSelection.options[i].selectedIndex = true;
+                break;
+            }
+        }
+        objectComponentsSelectionUpdate();
+    }
+}
+
+function getSelectedObject() {
+    if (objectSelection.selectedIndex >= 0) {
+        return objects[objectSelection.selectedIndex];
+    } else {
+        return null;
+    }
+}
+function getSelectedComponent() {
+    let selectedObject = getSelectedObject();
+    if (selectedObject != null && objectComponentsSelection.selectedIndex >= 0) {
+        return selectedObject.components[objectComponentsSelection.options[objectComponentsSelection.selectedIndex].text];
+    } else {
+        return null;
+    }
+}
+function getSelectedKey() {
+    let selectedComponent = getSelectedComponent();
+    if (selectedComponent != null && objectValueSelection.selectedIndex >= 0) {
+        return Object.keys(selectedComponent.values)[objectValueSelection.selectedIndex];
+    } else {
+        return null;
+    }
+}
+function getSelectedValue() {
+    let selectedComponent = getSelectedComponent();
+    let selectedKey = getSelectedKey();
+    if (selectedComponent != null && selectedKey != null) {
+        return selectedComponent.values[selectedKey];
+    } else {
+        return null;
+    }
+}
+objectComponentRemoveButton.addEventListener("click", objectComponentRemove);
+function objectComponentRemove() {
+    let selectedComponent = getSelectedComponent();
+    if (selectedComponent != null) {
+        let tmpSelectedIndex = objectComponentsSelection.selectedIndex;
+        delete selectedComponent;
+        objectComponentsSelectionUpdate();
+        objectComponentsSelection.selectedIndex = tmpSelectedIndex;
+    }
+}
+
+objectNewButton.addEventListener("click", objectNew);
+function objectNew() {
+    let name = window.prompt("object name?");
+    if (name != "") {
+        let newObject = new Entity(name);
+        objects.push(newObject);
+        objectSelectionUpdate();
+        objectSelection.selectedIndex = objectSelection.length - 1;
+    }
+}
+objectSelection.addEventListener("change", objectComponentsSelectionUpdate);
+function objectComponentsSelectionUpdate() {
+    objectComponentsSelection.innerHTML = "";
+    if (objectSelection.selectedIndex < 0) {
+        objectValueSelectionUpdate();
+        return;
+    }
+    let selectedObject = getSelectedObject();
+    for (const property in selectedObject.components) {
+        objectComponentsSelection.innerHTML += `<option>${property}</option>\n`;
+    }
+    objectValueSelectionUpdate();
+}
+objectDeleteButton.addEventListener("click", objectDelete);
+function objectDelete() {
+    let selectedObject = getSelectedObject();
+    if ( window.confirm(`Are you sure you want to delete ${selectedObject.name}?`) ) {
+        objects.splice(objectSelection.selectedIndex, 1);
+        objectSelectionUpdate();
+    }
+}
+objectComponentAddButton.addEventListener("click", objectComponentAdd);
+function objectComponentAdd() {
+    let selectedObject = getSelectedObject();
+    if (selectedObject == null) return;
+    let name = window.prompt("component name?");
+    if (name != "" && !contains(Object.keys(selectedObject.components))) {
+        let newComponent = new Component(name, selectedObject);
+        selectedObject.components[name] = newComponent;
+        objectComponentsSelectionUpdate();
+        for (let i = 0; i < Object.keys(selectedObject.components).length; i++) {
+            if (Object.keys(selectedObject.components)[i] == name) {
+                objectComponentsSelection.selectedIndex = i;
+                break;
+            }
+        }
+    }
+}
+function objectSelectionUpdate() {
+    // add new objects to the html select
+    objectSelection.innerHTML = "";
+    for (let i = 0; i < objects.length; i++) {
+        objectSelection.innerHTML += `<option>${objects[i].name}</option>\n`;
+    }
+    objectComponentsSelectionUpdate();
+}
+class Entity {
+    constructor(name) {
+        this.name = name;
+        this.components = {};
+    }
+}
+class Component {
+    constructor(name,parent) {
+        this.name = name;
+        this.values = {};
+        this.parent = parent;
+    }
+}
+// end object tool html stuff
 
 // sidebar tabs switching
 
@@ -61,7 +248,7 @@ class sidebarTab {
 const sidebarTabs = [
     new sidebarTab(
         "map-edit-tab",
-        document.getElementsByClassName("map-tab-container")
+        document.getElementsByClassName("map-tab")
     ),
     new sidebarTab(
         "paint-mode-tab",
@@ -70,7 +257,7 @@ const sidebarTabs = [
     ),
     new sidebarTab(
         "object-mode-tab",
-        []
+        document.getElementsByClassName("object-tab")
     )
 ];
 
@@ -89,10 +276,8 @@ function switchSidebarTab(tabIndex) {
         if (sidebarTabs[i].enabled) {
             sidebarTabs[i].enabled = false;
             for (let element = 0; element < sidebarTabs[i].toolElements.length; element++) {
-                // all these dots... yucky...
                 sidebarTabs[i].toolElements[element].style.display = "none";
             }
-            // i imagine there's a more standard way to do this
             for (let attr of sidebarTabs[i].buttonElement.attributes) {
                 if (attr.name == "selected") {
                     attr.value = "false";
@@ -160,6 +345,8 @@ let pressedKeys = {};
 let mouse_x = 0, mouse_y = 0;
 let updateDisplay = false;
 
+let objects = [];
+
 function expandMapToCanvasSize() {
     // prevent the map from being too small
     // will likely remove this function once
@@ -171,7 +358,6 @@ function expandMapToCanvasSize() {
         mapHeight = Math.round(canvas.height / tileHeight);
     }
 }
-// grandpa's function
 function onLoad() {
     tileSelectionDropdown.addEventListener("change", updateTileSelection);
     canvas.addEventListener("onresize", resizeCanvas);
@@ -182,6 +368,7 @@ function onLoad() {
     resizeCanvas();
     expandMapToCanvasSize();
     switchSidebarTab(0);
+    switchSidebarTab(2);
     switchSidebarTab(1);
     setInterval(update, FPS);
 }
@@ -192,6 +379,15 @@ function hasEventListener(element, eventType, callback) {
         return false;
     }
     return events[eventType].some(listener => listener === callback);
+}
+function contains(array, item) {
+    // return true if array contains item
+    for (let i = 0; i < array.length; i++) {
+        if (array[i] == item) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function resizeCanvas() {
@@ -374,6 +570,7 @@ function mouseLeave() {
 }
 
 // remind me to give this function a reasonable name at some point
+// gotta rewrite
 function mapLinePixelsToTileGrid(x1, y1, x2, y2) {
 
     // this function is """heavily inspired""" by Michael Abrash's C implementation
@@ -493,6 +690,7 @@ function mapLinePixelsToTileGrid(x1, y1, x2, y2) {
         // why am i doing this? idk...
 
         case 3: // deltax > deltay
+            // busted, doesn't fully reach end point in y dimension
             let deltaYx2 = deltaY * 2;
             let deltaYx2MinusDeltaXx2 = deltaY - (deltaX * 2);
             errorTerm = deltaYx2 - deltaX;

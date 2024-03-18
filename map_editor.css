@@ -79,7 +79,7 @@ button {
     border: 2px solid #3c5573;
     flex: 1;
 }
-.paint-tab {
+.paint-tab, object-tab {
     display:flex;
     justify-content:space-between;
     align-items:center;
@@ -108,9 +108,23 @@ select {
     padding:3px;
     border-bottom: 1px solid #3c5573;
 }
-#map-dimensions-inputs > div {
+#map-dimensions-inputs {
     display: flex;
     justify-content:space-between;
+    flex-direction: column;
+}
+.map-dimension-input {
+    display:flex;
+    justify-content:space-between;
+}
+#map-file-buttons {
+    justify-content: space-between;
+}
+#map-set-size-button {
+    width: 100%;
+}
+.map-file-button {
+    width: 32%;
 }
 .number {
     border:1px solid #3c5573;
@@ -118,4 +132,26 @@ select {
     text-align:right;
     width:50%;
     margin: 1px 0px;
+}
+#object-tab-container {
+    display: flex;
+    flex-direction: column;
+}
+.object-button-container {
+    display: flex;
+    justify-content:space-between;
+}
+#object-components-list, #object-list {
+    width: 100%;
+}
+.object-button {
+    width: 33%;
+}
+#components-title {
+    border-top: 1px solid #3c5573;
+    margin-top:8px;
+    padding-bottom: 1px;
+}
+#objects-title {
+    padding-bottom: 1px;
 }
