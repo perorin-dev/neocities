@@ -175,6 +175,7 @@ function entityNew() {
     }
 }
 entitySelection.addEventListener("change", entityComponentsSelectionUpdate);
+entityComponentsSelection.addEventListener("change", entityValueSelectionUpdate);
 function entityComponentsSelectionUpdate() {
     entityComponentsSelection.innerHTML = "";
     if (entitySelection.selectedIndex < 0) {
@@ -340,12 +341,37 @@ const offscreenCanvas = new OffscreenCanvas(canvas.width, canvas.height);
 const octx = offscreenCanvas.getContext('2d');
 octx.imageSmoothingEnabled = false;
 
+let cachedSprites = [];
+let cachedSpritesFilenames = [];
+
 // setup input 
 let pressedKeys = {};
 let mouse_x = 0, mouse_y = 0;
 let updateDisplay = false;
 
 let entitys = [];
+let exampleEntity = new Entity("exampleEntity");
+exampleEntity.components.position = new Component("position",exampleEntity);
+exampleEntity.components.position.values.x = 40*64;
+exampleEntity.components.position.values.y = 40*32;
+exampleEntity.components.depth = new Component("depth", exampleEntity);
+exampleEntity.components.depth.values.depth = 0;
+exampleEntity.components.sprite = new Component("sprite", exampleEntity);
+exampleEntity.components.sprite.values.filename = "Images/assets/default-sprite.png";
+entitys.push(exampleEntity);
+entitySelectionUpdate();
+
+function spriteToHTMLImage(filename) {
+    let i = index(cachedSpritesFilenames);
+    if (i < 0) {
+        cachedSprites.push(new Image());
+        cachedSprites[cachedSprites.length - 1].src = filename;
+        cachedSpritesFilenames.push(filename);
+        return cachedSprites[cachedSprites.length - 1];
+    } else {
+        return cachedSprites[i];
+    }
+}
 
 function expandMapToCanvasSize() {
     // prevent the map from being too small
@@ -380,8 +406,17 @@ function hasEventListener(element, eventType, callback) {
     }
     return events[eventType].some(listener => listener === callback);
 }
+function index(array, item) {
+    //return index if array contains item, -1 otherwise
+    for (let i = 0; i < array.length; i++) {
+        if (array[i] == item) {
+            return i;
+        }
+    }
+    return -1;
+}
 function contains(array, item) {
-    // return true if array contains item
+    // return if array contains item, false otherise
     for (let i = 0; i < array.length; i++) {
         if (array[i] == item) {
             return true;
@@ -492,11 +527,42 @@ function draw() {
 
     drawPaintCursor();
 
+    // draw entitys with sprites
+    let drawData = [];
+    for (let i = 0; i < entitys.length; i++) {
+        let keys = Object.keys(entitys[i].components);
+        //                              0      1           2           3
+        //                sprite filename, depth, x position, y position
+        if (contains(keys, "sprite")) {
+            let entityData = [             "",     0,          0,          0];
+            entityData[0] = entitys[i].components.sprite.values.filename;
+            if (contains(keys, "depth")) {
+                entityData[1] = entitys[i].components.depth.values.depth;
+            }
+            if (contains(keys, "position")) {
+                entityData[2] = entitys[i].components.position.values.x;
+                entityData[3] = entitys[i].components.position.values.y;
+            }
+            drawData.push(entityData);
+        }
+    }
+    if (drawData.length > 0) {
+        drawData.sort(drawDataCompare);
+        for (let i = 0; i < drawData.length; i++) {
+            octx.drawImage(spriteToHTMLImage(drawData[i][0]), drawData[i][2]-view_x, drawData[i][3]-view_y);
+        }
+    }
     // finally, draw it all to the actual screen
     ctx.fillStyle = "#FFF";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(offscreenCanvas, 0, 0);
     updateDisplay = false;
+
+}
+function drawDataCompare(a, b) {
+    if (a[1] < b[1]) return -1;
+    if (a[1] > b[1]) return 1;
+    return 0;
 }
 
 function drawPaintCursor() {
