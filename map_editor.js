@@ -46,38 +46,38 @@ const brushSizeSlider = document.getElementById("size-slider");
 
 // end paint tab html stuff
 
-// object tool html stuff
-const objectSelection = document.getElementById("object-list");
-const objectNewButton = document.getElementById("object-new-button");
-const objectDeleteButton = document.getElementById("object-delete-button");
-const objectComponentsSelection = document.getElementById("object-components-list");
-const objectComponentAddButton = document.getElementById("object-component-add-button");
-const objectComponentEditButton = document.getElementById("object-component-edit-button");
-const objectComponentRemoveButton = document.getElementById("object-component-remove-button");
-const objectValueSelection = document.getElementById("object-values-list");
-const objectValueAddButton = document.getElementById("object-value-add-button");
-const objectValueEditButton = document.getElementById("object-value-edit-button");
-const objectValueRemoveButton = document.getElementById("object-value-remove-button");
-const objectSpriteSelection = document.getElementById("object-sprite-selection");
+// entity tool html stuff
+const entitySelection = document.getElementById("entity-list");
+const entityNewButton = document.getElementById("entity-new-button");
+const entityDeleteButton = document.getElementById("entity-delete-button");
+const entityComponentsSelection = document.getElementById("entity-components-list");
+const entityComponentAddButton = document.getElementById("entity-component-add-button");
+const entityComponentEditButton = document.getElementById("entity-component-edit-button");
+const entityComponentRemoveButton = document.getElementById("entity-component-remove-button");
+const entityValueSelection = document.getElementById("entity-values-list");
+const entityValueAddButton = document.getElementById("entity-value-add-button");
+const entityValueEditButton = document.getElementById("entity-value-edit-button");
+const entityValueRemoveButton = document.getElementById("entity-value-remove-button");
+const entitySpriteSelection = document.getElementById("entity-sprite-selection");
 
-objectValueRemoveButton.addEventListener("click", objectValueRemove);
-function objectValueRemove() {
+entityValueRemoveButton.addEventListener("click", entityValueRemove);
+function entityValueRemove() {
     let selectedComponent = getSelectedComponent();
     if (selectedComponent != null) {
         delete selectedComponent.values[getSelectedKey()];
-        objectValueSelectionUpdate();
+        entityValueSelectionUpdate();
     }
 }
 
-objectValueEditButton.addEventListener("click", objectValueEdit);
-function objectValueEdit() {
+entityValueEditButton.addEventListener("click", entityValueEdit);
+function entityValueEdit() {
     let newValue = window.prompt();
     let selectedComponent = getSelectedComponent();
     selectedComponent.values[getSelectedKey()] = newValue;
-    objectValueSelectionUpdate();
+    entityValueSelectionUpdate();
 }
-objectValueAddButton.addEventListener("click", objectValueAdd);
-function objectValueAdd() {
+entityValueAddButton.addEventListener("click", entityValueAdd);
+function entityValueAdd() {
     let valueName = window.prompt("New value name?");
     if (valueName == "") {
         console.log('empty value name\n');
@@ -93,53 +93,53 @@ function objectValueAdd() {
         console.log(`${selectedComponent.name} already contains ${valueName}\n`);
     } else {
         selectedComponent.values[valueName] = valueValue;
-        objectValueSelectionUpdate();
+        entityValueSelectionUpdate();
     }
 }
-function objectValueSelectionUpdate() {
+function entityValueSelectionUpdate() {
     let selectedComponent = getSelectedComponent();
-    objectValueSelection.innerHTML = "";
+    entityValueSelection.innerHTML = "";
     if (selectedComponent == null) return;
     for (let i = 0; i < Object.keys(selectedComponent.values).length; i++) {
-        objectValueSelection.innerHTML += `<option>${Object.keys(selectedComponent.values)[i]} | ${selectedComponent.values[Object.keys(selectedComponent.values)[i]]}\n`;
+        entityValueSelection.innerHTML += `<option>${Object.keys(selectedComponent.values)[i]} | ${selectedComponent.values[Object.keys(selectedComponent.values)[i]]}\n`;
     }
 }
-objectComponentEditButton.addEventListener("click", objectComponentEdit);
-function objectComponentEdit() {
+entityComponentEditButton.addEventListener("click", entityComponentEdit);
+function entityComponentEdit() {
     let selectedComponent = getSelectedComponent();
     if (selectedComponent == null) return;
     let newName = window.prompt("New component name?");
     if (newName != "") {
         selectedComponent.name = newName;
-        for (let i = 0; i < objectComponentsSelection.length; i++) {
-            if (objectComponentsSelection.options[i].text == newName) {
-                objectComponentsSelection.options[i].selectedIndex = true;
+        for (let i = 0; i < entityComponentsSelection.length; i++) {
+            if (entityComponentsSelection.options[i].text == newName) {
+                entityComponentsSelection.options[i].selectedIndex = true;
                 break;
             }
         }
-        objectComponentsSelectionUpdate();
+        entityComponentsSelectionUpdate();
     }
 }
 
-function getSelectedObject() {
-    if (objectSelection.selectedIndex >= 0) {
-        return objects[objectSelection.selectedIndex];
+function getSelectedEntity() {
+    if (entitySelection.selectedIndex >= 0) {
+        return entitys[entitySelection.selectedIndex];
     } else {
         return null;
     }
 }
 function getSelectedComponent() {
-    let selectedObject = getSelectedObject();
-    if (selectedObject != null && objectComponentsSelection.selectedIndex >= 0) {
-        return selectedObject.components[objectComponentsSelection.options[objectComponentsSelection.selectedIndex].text];
+    let selectedEntity = getSelectedEntity();
+    if (selectedEntity != null && entityComponentsSelection.selectedIndex >= 0) {
+        return selectedEntity.components[entityComponentsSelection.options[entityComponentsSelection.selectedIndex].text];
     } else {
         return null;
     }
 }
 function getSelectedKey() {
     let selectedComponent = getSelectedComponent();
-    if (selectedComponent != null && objectValueSelection.selectedIndex >= 0) {
-        return Object.keys(selectedComponent.values)[objectValueSelection.selectedIndex];
+    if (selectedComponent != null && entityValueSelection.selectedIndex >= 0) {
+        return Object.keys(selectedComponent.values)[entityValueSelection.selectedIndex];
     } else {
         return null;
     }
@@ -153,72 +153,72 @@ function getSelectedValue() {
         return null;
     }
 }
-objectComponentRemoveButton.addEventListener("click", objectComponentRemove);
-function objectComponentRemove() {
+entityComponentRemoveButton.addEventListener("click", entityComponentRemove);
+function entityComponentRemove() {
     let selectedComponent = getSelectedComponent();
     if (selectedComponent != null) {
-        let tmpSelectedIndex = objectComponentsSelection.selectedIndex;
+        let tmpSelectedIndex = entityComponentsSelection.selectedIndex;
         delete selectedComponent;
-        objectComponentsSelectionUpdate();
-        objectComponentsSelection.selectedIndex = tmpSelectedIndex;
+        entityComponentsSelectionUpdate();
+        entityComponentsSelection.selectedIndex = tmpSelectedIndex;
     }
 }
 
-objectNewButton.addEventListener("click", objectNew);
-function objectNew() {
-    let name = window.prompt("object name?");
+entityNewButton.addEventListener("click", entityNew);
+function entityNew() {
+    let name = window.prompt("entity name?");
     if (name != "") {
-        let newObject = new Entity(name);
-        objects.push(newObject);
-        objectSelectionUpdate();
-        objectSelection.selectedIndex = objectSelection.length - 1;
+        let newEntity = new Entity(name);
+        entitys.push(newEntity);
+        entitySelectionUpdate();
+        entitySelection.selectedIndex = entitySelection.length - 1;
     }
 }
-objectSelection.addEventListener("change", objectComponentsSelectionUpdate);
-function objectComponentsSelectionUpdate() {
-    objectComponentsSelection.innerHTML = "";
-    if (objectSelection.selectedIndex < 0) {
-        objectValueSelectionUpdate();
+entitySelection.addEventListener("change", entityComponentsSelectionUpdate);
+function entityComponentsSelectionUpdate() {
+    entityComponentsSelection.innerHTML = "";
+    if (entitySelection.selectedIndex < 0) {
+        entityValueSelectionUpdate();
         return;
     }
-    let selectedObject = getSelectedObject();
-    for (const property in selectedObject.components) {
-        objectComponentsSelection.innerHTML += `<option>${property}</option>\n`;
+    let selectedEntity = getSelectedEntity();
+    for (const property in selectedEntity.components) {
+        entityComponentsSelection.innerHTML += `<option>${property}</option>\n`;
     }
-    objectValueSelectionUpdate();
+    entityValueSelectionUpdate();
 }
-objectDeleteButton.addEventListener("click", objectDelete);
-function objectDelete() {
-    let selectedObject = getSelectedObject();
-    if ( window.confirm(`Are you sure you want to delete ${selectedObject.name}?`) ) {
-        objects.splice(objectSelection.selectedIndex, 1);
-        objectSelectionUpdate();
+entityDeleteButton.addEventListener("click", entityDelete);
+function entityDelete() {
+    let selectedEntity = getSelectedEntity();
+    if ( window.confirm(`Are you sure you want to delete ${selectedEntity.name}?`) ) {
+        entitys.splice(entitySelection.selectedIndex, 1);
+        entitySelectionUpdate();
     }
 }
-objectComponentAddButton.addEventListener("click", objectComponentAdd);
-function objectComponentAdd() {
-    let selectedObject = getSelectedObject();
-    if (selectedObject == null) return;
+entityComponentAddButton.addEventListener("click", entityComponentAdd);
+function entityComponentAdd() {
+    let selectedEntity = getSelectedEntity();
+    if (selectedEntity == null) return;
     let name = window.prompt("component name?");
-    if (name != "" && !contains(Object.keys(selectedObject.components))) {
-        let newComponent = new Component(name, selectedObject);
-        selectedObject.components[name] = newComponent;
-        objectComponentsSelectionUpdate();
-        for (let i = 0; i < Object.keys(selectedObject.components).length; i++) {
-            if (Object.keys(selectedObject.components)[i] == name) {
-                objectComponentsSelection.selectedIndex = i;
+    if (name != "" && !contains(Object.keys(selectedEntity.components))) {
+        let newComponent = new Component(name, selectedEntity);
+        selectedEntity.components[name] = newComponent;
+        entityComponentsSelectionUpdate();
+        for (let i = 0; i < Object.keys(selectedEntity.components).length; i++) {
+            if (Object.keys(selectedEntity.components)[i] == name) {
+                entityComponentsSelection.selectedIndex = i;
                 break;
             }
         }
     }
 }
-function objectSelectionUpdate() {
-    // add new objects to the html select
-    objectSelection.innerHTML = "";
-    for (let i = 0; i < objects.length; i++) {
-        objectSelection.innerHTML += `<option>${objects[i].name}</option>\n`;
+function entitySelectionUpdate() {
+    // add new entitys to the html select
+    entitySelection.innerHTML = "";
+    for (let i = 0; i < entitys.length; i++) {
+        entitySelection.innerHTML += `<option>${entitys[i].name}</option>\n`;
     }
-    objectComponentsSelectionUpdate();
+    entityComponentsSelectionUpdate();
 }
 class Entity {
     constructor(name) {
@@ -233,7 +233,7 @@ class Component {
         this.parent = parent;
     }
 }
-// end object tool html stuff
+// end entity tool html stuff
 
 // sidebar tabs switching
 
@@ -256,8 +256,8 @@ const sidebarTabs = [
         enabled = true
     ),
     new sidebarTab(
-        "object-mode-tab",
-        document.getElementsByClassName("object-tab")
+        "entity-mode-tab",
+        document.getElementsByClassName("entity-tab")
     )
 ];
 
@@ -345,7 +345,7 @@ let pressedKeys = {};
 let mouse_x = 0, mouse_y = 0;
 let updateDisplay = false;
 
-let objects = [];
+let entitys = [];
 
 function expandMapToCanvasSize() {
     // prevent the map from being too small

@@ -37,7 +37,7 @@
                             <div id="sidebar-tab-container">
                                 <button class="sidebar-tab-button" id="map-edit-tab" selected="false">map</button>
                                 <button class="sidebar-tab-button" id="paint-mode-tab" selected="true">paint</button>
-                                <button class="sidebar-tab-button" id="object-mode-tab" selected="false">object</button>
+                                <button class="sidebar-tab-button" id="entity-mode-tab" selected="false">entity</button>
                             </div>
                             <div id="sidebar">
                                 <!-- map tab -->
@@ -76,29 +76,29 @@
                                     <input type="range" min="1" max="100" value="1" class="slider" id="size-slider" />
                                 </div>
                                 <p class="paint-tab" id="highlighted-tile-display">x: <br />y: <br />value: </p>
-                                <!-- object tab -->
-                                <div class="object-tab" id="object-tab-container">
-                                    <div id="objects-title">objects:</div>
-                                    <select size="10" id="object-list"></select>
-                                    <div class="object-button-container">
-                                        <button class="sidebar-tab-button object-button" id="object-new-button">new</button>
-                                        <button class="sidebar-tab-button object-button" id="object-delete-button">delete</button>
+                                <!-- entity tab -->
+                                <div class="entity-tab" id="entity-tab-container">
+                                    <div id="entitys-title">entitys:</div>
+                                    <select size="10" id="entity-list"></select>
+                                    <div class="entity-button-container">
+                                        <button class="sidebar-tab-button entity-button" id="entity-new-button">new</button>
+                                        <button class="sidebar-tab-button entity-button" id="entity-delete-button">delete</button>
                                     </div>
                                     <div id="components-title">components:</div>
-                                    <select id="object-components-list" size="10"></select>
-                                    <div class="object-button-container">
-                                        <button class="sidebar-tab-button object-button" id="object-component-add-button">add</button>
-                                        <button class="sidebar-tab-button object-button" id="object-component-edit-button">edit</button>
-                                        <button class="sidebar-tab-button object-button" id="object-component-remove-button">remove</button>
+                                    <select id="entity-components-list" size="10"></select>
+                                    <div class="entity-button-container">
+                                        <button class="sidebar-tab-button entity-button" id="entity-component-add-button">add</button>
+                                        <button class="sidebar-tab-button entity-button" id="entity-component-edit-button">edit</button>
+                                        <button class="sidebar-tab-button entity-button" id="entity-component-remove-button">remove</button>
                                     </div>
                                     <div id="values-title">component values:</div>
-                                    <select id="object-values-list" size="10"></select>
-                                    <div class="object-button-container">
-                                        <button class="sidebar-tab-button object-button" id="object-value-add-button">add</button>
-                                        <button class="sidebar-tab-button object-button" id="object-value-edit-button">edit</button>
-                                        <button class="sidebar-tab-button object-button" id="object-value-remove-button">remove</button>
+                                    <select id="entity-values-list" size="10"></select>
+                                    <div class="entity-button-container">
+                                        <button class="sidebar-tab-button entity-button" id="entity-value-add-button">add</button>
+                                        <button class="sidebar-tab-button entity-button" id="entity-value-edit-button">edit</button>
+                                        <button class="sidebar-tab-button entity-button" id="entity-value-remove-button">remove</button>
                                     </div>
-                                    <select id="object-sprite-selection"></select>
+                                    <select id="entity-sprite-selection"></select>
                                 </div>
                             </div>
                         </div>
