@@ -58,13 +58,13 @@ const entityValueSelection = document.getElementById("entity-values-list");
 const entityValueAddButton = document.getElementById("entity-value-add-button");
 const entityValueEditButton = document.getElementById("entity-value-edit-button");
 const entityValueRemoveButton = document.getElementById("entity-value-remove-button");
-const entitySpriteSelection = document.getElementById("entity-sprite-selection");
 
 entityValueRemoveButton.addEventListener("click", entityValueRemove);
 function entityValueRemove() {
     let selectedComponent = getSelectedComponent();
     if (selectedComponent != null) {
         delete selectedComponent.values[getSelectedKey()];
+        updateDisplay = true;
         entityValueSelectionUpdate();
     }
 }
@@ -74,6 +74,7 @@ function entityValueEdit() {
     let newValue = window.prompt();
     let selectedComponent = getSelectedComponent();
     selectedComponent.values[getSelectedKey()] = newValue;
+    updateDisplay = true;
     entityValueSelectionUpdate();
 }
 entityValueAddButton.addEventListener("click", entityValueAdd);
@@ -93,6 +94,7 @@ function entityValueAdd() {
         console.log(`${selectedComponent.name} already contains ${valueName}\n`);
     } else {
         selectedComponent.values[valueName] = valueValue;
+        updateDisplay = true;
         entityValueSelectionUpdate();
     }
 }
@@ -107,16 +109,25 @@ function entityValueSelectionUpdate() {
 entityComponentEditButton.addEventListener("click", entityComponentEdit);
 function entityComponentEdit() {
     let selectedComponent = getSelectedComponent();
+    let selectedEntity = getSelectedEntity();
     if (selectedComponent == null) return;
     let newName = window.prompt("New component name?");
-    if (newName != "") {
+    if (newName != "" ) {
+        let oldName = selectedComponent.name;
+        if ( selectedEntity.hasComponent(newName)) {
+            console.log(`${selectedEntity.name} already has component ${newName}`);
+            return;
+        }
         selectedComponent.name = newName;
+        selectedEntity.components[newName] = selectedComponent;
+        delete selectedEntity.components[oldName];
         for (let i = 0; i < entityComponentsSelection.length; i++) {
             if (entityComponentsSelection.options[i].text == newName) {
                 entityComponentsSelection.options[i].selectedIndex = true;
                 break;
             }
         }
+        updateDisplay = true;
         entityComponentsSelectionUpdate();
     }
 }
@@ -158,9 +169,12 @@ function entityComponentRemove() {
     let selectedComponent = getSelectedComponent();
     if (selectedComponent != null) {
         let tmpSelectedIndex = entityComponentsSelection.selectedIndex;
+        let selectedEntity = getSelectedEntity();
+        delete selectedEntity[selectedComponent.name];
         delete selectedComponent;
         entityComponentsSelectionUpdate();
         entityComponentsSelection.selectedIndex = tmpSelectedIndex;
+        updateDisplay = true;
     }
 }
 
@@ -194,6 +208,7 @@ function entityDelete() {
     if ( window.confirm(`Are you sure you want to delete ${selectedEntity.name}?`) ) {
         entitys.splice(entitySelection.selectedIndex, 1);
         entitySelectionUpdate();
+        updateDisplay = true;
     }
 }
 entityComponentAddButton.addEventListener("click", entityComponentAdd);
@@ -201,8 +216,8 @@ function entityComponentAdd() {
     let selectedEntity = getSelectedEntity();
     if (selectedEntity == null) return;
     let name = window.prompt("component name?");
-    if (name != "" && !contains(Object.keys(selectedEntity.components))) {
-        let newComponent = new Component(name, selectedEntity);
+    if ( name != "" && !selectedEntity.hasComponent(name)) {
+        let newComponent = new Component(name);
         selectedEntity.components[name] = newComponent;
         entityComponentsSelectionUpdate();
         for (let i = 0; i < Object.keys(selectedEntity.components).length; i++) {
@@ -226,12 +241,18 @@ class Entity {
         this.name = name;
         this.components = {};
     }
+    addComponent(name) {
+        let newComponent = new Component(name);
+        this.components[name] = newComponent;
+    }
+    hasComponent(name) {
+        return Object.hasOwn(this.components,name);
+    }
 }
 class Component {
-    constructor(name,parent) {
+    constructor(name) {
         this.name = name;
         this.values = {};
-        this.parent = parent;
     }
 }
 // end entity tool html stuff
@@ -351,13 +372,15 @@ let updateDisplay = false;
 
 let entitys = [];
 let exampleEntity = new Entity("exampleEntity");
-exampleEntity.components.position = new Component("position",exampleEntity);
-exampleEntity.components.position.values.x = 40*64;
-exampleEntity.components.position.values.y = 40*32;
-exampleEntity.components.depth = new Component("depth", exampleEntity);
+exampleEntity.components.position = new Component("position");
+exampleEntity.components.position.values.x = 43*64;
+exampleEntity.components.position.values.y = 43*32;
+exampleEntity.components.depth = new Component("depth");
 exampleEntity.components.depth.values.depth = 0;
-exampleEntity.components.sprite = new Component("sprite", exampleEntity);
+exampleEntity.components.sprite = new Component("sprite");
 exampleEntity.components.sprite.values.filename = "Images/assets/default-sprite.png";
+exampleEntity.components.sprite.values.offset_x = -16;
+exampleEntity.components.sprite.values.offset_y = -16;
 entitys.push(exampleEntity);
 entitySelectionUpdate();
 
@@ -375,8 +398,6 @@ function spriteToHTMLImage(filename) {
 
 function expandMapToCanvasSize() {
     // prevent the map from being too small
-    // will likely remove this function once
-    // I make a sidebar for general map settings
     if (mapWidth < canvas.width / tileWidth) {
         mapWidth = Math.round(canvas.width / tileWidth);
     }
@@ -416,7 +437,7 @@ function index(array, item) {
     return -1;
 }
 function contains(array, item) {
-    // return if array contains item, false otherise
+    // return true if array contains item, false otherise
     for (let i = 0; i < array.length; i++) {
         if (array[i] == item) {
             return true;
@@ -504,7 +525,7 @@ function draw() {
             );
 
             // bottom left
-            tile_y = map[x - 1 + (y % 2)][y + 1] * tileHeight;
+            tile_y = map[x - 1 + (y & 1)][y + 1] * tileHeight;
             octx.drawImage(
                 backgroundTiles, tile_x, tile_y + tileSegmentWidth,
                 tileSegmentWidth, tileSegmentHeight,
@@ -514,7 +535,7 @@ function draw() {
             );
 
             // bottom right
-            tile_y = map[x + (y % 2)][y + 1] * tileHeight;
+            tile_y = map[x + (y & 1)][y + 1] * tileHeight;
             octx.drawImage(
                 backgroundTiles, tile_x + tileSegmentWidth, tile_y + tileSegmentWidth,
                 tileSegmentWidth, tileSegmentHeight,
@@ -531,22 +552,23 @@ function draw() {
     let drawData = [];
     for (let i = 0; i < entitys.length; i++) {
         let keys = Object.keys(entitys[i].components);
-        //                              0      1           2           3
-        //                sprite filename, depth, x position, y position
         if (contains(keys, "sprite")) {
+            //                              0      1           2           3
+            //                sprite filename, depth, x position, y position
             let entityData = [             "",     0,          0,          0];
             entityData[0] = entitys[i].components.sprite.values.filename;
             if (contains(keys, "depth")) {
                 entityData[1] = entitys[i].components.depth.values.depth;
             }
             if (contains(keys, "position")) {
-                entityData[2] = entitys[i].components.position.values.x;
-                entityData[3] = entitys[i].components.position.values.y;
+                entityData[2] = entitys[i].components.position.values.x + entitys[i].components.sprite.values.offset_x;
+                entityData[3] = entitys[i].components.position.values.y + entitys[i].components.sprite.values.offset_x;
             }
             drawData.push(entityData);
         }
     }
     if (drawData.length > 0) {
+        // sort sprites by depth, ie higher depth sprites are drawn in front of lower depth
         drawData.sort(drawDataCompare);
         for (let i = 0; i < drawData.length; i++) {
             octx.drawImage(spriteToHTMLImage(drawData[i][0]), drawData[i][2]-view_x, drawData[i][3]-view_y);
@@ -1070,6 +1092,7 @@ function mapImport(e) {
             mapWidth = jsn.mapWidth;
             mapHeight = jsn.mapHeight;
             map = jsn.map;
+            entitys = jsn.entitys;
             updateDisplay = true;
         }
         reader.readAsText(selected_file);
@@ -1079,7 +1102,8 @@ function mapExport() {
     const mapData = {
         mapWidth: mapWidth,
         mapHeight: mapHeight,
-        map: map
+        map: map,
+        entitys: entitys
     }
     const mapBlob = new Blob([JSON.stringify(mapData)]);
     let a = document.createElement("a");
