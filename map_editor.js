@@ -314,6 +314,7 @@ function switchSidebarTab(tabIndex) {
     for (let attr of sidebarTabs[tabIndex].buttonElement.attributes) {
         if (attr.name == "selected") attr.value = "true";
     }
+    resizeCanvas();
 }
 
 
@@ -407,16 +408,16 @@ function expandMapToCanvasSize() {
 }
 function onLoad() {
     tileSelectionDropdown.addEventListener("change", updateTileSelection);
-    canvas.addEventListener("onresize", resizeCanvas);
+    canvas.addEventListener("ynresize", resizeCanvas);
     window.addEventListener("resize", resizeCanvas);
     canvas.addEventListener("mousemove", findFocus);
     canvas.addEventListener("mouseenter", mouseEnter);
     updateTileSelection(null);
-    resizeCanvas();
     expandMapToCanvasSize();
     switchSidebarTab(0);
     switchSidebarTab(2);
     switchSidebarTab(1);
+    resizeCanvas();
     setInterval(update, FPS);
 }
 
@@ -553,16 +554,17 @@ function draw() {
     for (let i = 0; i < entitys.length; i++) {
         let keys = Object.keys(entitys[i].components);
         if (contains(keys, "sprite")) {
-            //                              0      1           2           3
-            //                sprite filename, depth, x position, y position
-            let entityData = [             "",     0,          0,          0];
+            //                              0      1           2           3         4
+            //                sprite filename, depth, x position, y position, selected
+            let entityData = [             "",     0,          0,          0,        0];
+            if (i == entitySelection.selectedIndex) entityData[4] = 1;
             entityData[0] = entitys[i].components.sprite.values.filename;
             if (contains(keys, "depth")) {
                 entityData[1] = entitys[i].components.depth.values.depth;
             }
             if (contains(keys, "position")) {
                 entityData[2] = entitys[i].components.position.values.x + entitys[i].components.sprite.values.offset_x;
-                entityData[3] = entitys[i].components.position.values.y + entitys[i].components.sprite.values.offset_x;
+                entityData[3] = entitys[i].components.position.values.y + entitys[i].components.sprite.values.offset_y;
             }
             drawData.push(entityData);
         }
@@ -571,7 +573,18 @@ function draw() {
         // sort sprites by depth, ie higher depth sprites are drawn in front of lower depth
         drawData.sort(drawDataCompare);
         for (let i = 0; i < drawData.length; i++) {
-            octx.drawImage(spriteToHTMLImage(drawData[i][0]), drawData[i][2]-view_x, drawData[i][3]-view_y);
+            let image = spriteToHTMLImage(drawData[i][0]);
+            let x = drawData[i][2]-view_x;
+            let y = drawData[i][3]-view_y;
+            if (drawData[i][4]) {
+                octx.shadowColor = "white";
+                octx.shadowBlur = 16;
+                octx.drawImage(image, x, y);
+                octx.shadowColor = null;
+                octx.shadowBlur = null;
+            } else {
+                octx.drawImage(image, x, y);
+            }
         }
     }
     // finally, draw it all to the actual screen
@@ -866,8 +879,28 @@ function mouseMove(event) {
                     break;
             }
         }
+    } else if (sidebarTabs[2].enabled && ((event.buttons & 1 ) == 1 )) {
+        let selectedEntity = getSelectedEntity();
+        if (selectedEntity != null) {
+            if (selectedEntity.hasComponent("sprite") &&
+                selectedEntity.hasComponent("position")) {
+                let image = spriteToHTMLImage(selectedEntity.components.sprite.values.filename);
+                let x = selectedEntity.components.position.values.x +
+                    selectedEntity.components.sprite.values.offset_x -
+                    view_x;
+                let y = selectedEntity.components.position.values.y +
+                    selectedEntity.components.sprite.values.offset_y -
+                    view_y;
+                let w = image.width;
+                let h = image.height;
+                if (prevMouse_x >= x && prevMouse_x <= x + w && prevMouse_y >= y && prevMouse_y <= y + h) { 
+                    selectedEntity.components.position.values.x = view_x+mouse_x;
+                    selectedEntity.components.position.values.y = view_y+mouse_y;
+                    updateDisplay = true;
+                }
+            }
+        }
     }
-
     if ((event.buttons & 4) == 4) { // is middle mouse pressed?
         panView(prevMouse_x, prevMouse_y, mouse_x, mouse_y);
     }
@@ -985,6 +1018,39 @@ function mouseDown(event) {
 }
 
 function mouseUp(event) {
+    if (event.button  == 0) {
+        // select entitys with the mouse
+        if (sidebarTabs[2].enabled) {
+            let foundEntity = false;
+            for (let i = 0; i < entitys.length; i++) {
+                if (entitys[i].hasComponent("sprite") &&
+                    entitys[i].hasComponent("position")) {
+                    let image = spriteToHTMLImage(entitys[i].components.sprite.values.filename);
+
+                    let x = entitys[i].components.position.values.x +
+                        entitys[i].components.sprite.values.offset_x -
+                        view_x;
+                    let y = entitys[i].components.position.values.y +
+                        entitys[i].components.sprite.values.offset_y -
+                        view_y;
+                    let w = image.width;
+                    let h = image.height;
+                    if (mouse_x >= x && mouse_x <= x + w && mouse_y >= y && mouse_y <= y + h) {
+                        console.log(`selecting ${entitys[i].name}`)
+                        entitySelection.selectedIndex = i;
+                        entityComponentsSelectionUpdate();
+                        foundEntity = true;
+                        updateDisplay = true;
+                    }
+                }
+            }
+            if (!foundEntity && entitySelection.selectedIndex > -1) {
+                updateDisplay = true;
+                entitySelection.selectedIndex = -1;
+                entityComponentsSelectionUpdate();
+            }
+        }
+    }
     event.preventDefault();
 }
 
