@@ -362,6 +362,8 @@ const ctx = canvas.getContext("2d");
 const offscreenCanvas = new OffscreenCanvas(canvas.width, canvas.height);
 const octx = offscreenCanvas.getContext('2d');
 octx.imageSmoothingEnabled = false;
+octx.textAlign = "right";
+octx.font = "monospace 12px";
 
 let cachedSprites = [];
 let cachedSpritesFilenames = [];
@@ -382,6 +384,10 @@ exampleEntity.components.sprite = new Component("sprite");
 exampleEntity.components.sprite.values.filename = "Images/assets/default-sprite.png";
 exampleEntity.components.sprite.values.offset_x = -16;
 exampleEntity.components.sprite.values.offset_y = -16;
+exampleEntity.components.sprite.values.rotation = 0;
+exampleEntity.components.sprite.values.scale_x = 1;
+exampleEntity.components.sprite.values.scale_y = 1;
+exampleEntity.components.sprite.values.alpha = 1;
 entitys.push(exampleEntity);
 entitySelectionUpdate();
 
@@ -554,11 +560,15 @@ function draw() {
     for (let i = 0; i < entitys.length; i++) {
         let keys = Object.keys(entitys[i].components);
         if (contains(keys, "sprite")) {
-            //                              0      1           2           3         4
-            //                sprite filename, depth, x position, y position, selected
-            let entityData = [             "",     0,          0,          0,        0];
+            //                              0      1           2           3         4      5         6        7        8
+            //                sprite filename, depth, x position, y position, selected, alpha, rotation, scale_x, scale_y
+            let entityData = [             "",     0,          0,          0,        0,     1,        0,       1,       1];
             if (i == entitySelection.selectedIndex) entityData[4] = 1;
             entityData[0] = entitys[i].components.sprite.values.filename;
+            entityData[5] = entitys[i].components.sprite.values.alpha;
+            entityData[6] = entitys[i].components.sprite.values.rotation;
+            entityData[7] = entitys[i].components.sprite.values.scale_x;
+            entityData[8] = entitys[i].components.sprite.values.scale_y;
             if (contains(keys, "depth")) {
                 entityData[1] = entitys[i].components.depth.values.depth;
             }
@@ -576,14 +586,17 @@ function draw() {
             let image = spriteToHTMLImage(drawData[i][0]);
             let x = drawData[i][2]-view_x;
             let y = drawData[i][3]-view_y;
-            if (drawData[i][4]) {
+            let width = image.width * drawData[i][7];
+            let height = image.height * drawData[i][8];
+            if (drawData[i][4]) { 
+                // highlight the selected entity
                 octx.shadowColor = "white";
                 octx.shadowBlur = 16;
-                octx.drawImage(image, x, y);
+                octx.drawImage(image, x, y, width, height);
                 octx.shadowColor = null;
                 octx.shadowBlur = null;
             } else {
-                octx.drawImage(image, x, y);
+                octx.drawImage(image, x, y, width, height);
             }
         }
     }
@@ -891,11 +904,11 @@ function mouseMove(event) {
                 let y = selectedEntity.components.position.values.y +
                     selectedEntity.components.sprite.values.offset_y -
                     view_y;
-                let w = image.width;
-                let h = image.height;
+                let w = image.width * selectedEntity.components.sprite.values.scale_x;
+                let h = image.height * selectedEntity.components.sprite.values.scale_y;
                 if (prevMouse_x >= x && prevMouse_x <= x + w && prevMouse_y >= y && prevMouse_y <= y + h) { 
-                    selectedEntity.components.position.values.x = view_x+mouse_x;
-                    selectedEntity.components.position.values.y = view_y+mouse_y;
+                    selectedEntity.components.position.values.x += mouse_x - prevMouse_x;
+                    selectedEntity.components.position.values.y += mouse_y - prevMouse_y;
                     updateDisplay = true;
                 }
             }
@@ -1033,8 +1046,8 @@ function mouseUp(event) {
                     let y = entitys[i].components.position.values.y +
                         entitys[i].components.sprite.values.offset_y -
                         view_y;
-                    let w = image.width;
-                    let h = image.height;
+                    let w = image.width * entitys[i].components.sprite.values.scale_x;
+                    let h = image.height * entitys[i].components.sprite.values.scale_y;
                     if (mouse_x >= x && mouse_x <= x + w && mouse_y >= y && mouse_y <= y + h) {
                         console.log(`selecting ${entitys[i].name}`)
                         entitySelection.selectedIndex = i;
@@ -1177,9 +1190,18 @@ function mapExport() {
     a.download = "map.json";
     a.click();
 }
+
+function drawMousePosition() {
+    ctx.fillStyle = "#FFF";
+    ctx.fillRect(canvas.width - 60, canvas.height - 24, 60, 24);
+    ctx.fillStyle = "black";
+    ctx.fillText(`x: ${view_x + mouse_x}`, canvas.width - 50, canvas.height - 15);
+    ctx.fillText(`y: ${view_y + mouse_y}`, canvas.width - 50, canvas.height - 3);
+}
 function update() {
     handleKeyboard();
     draw();
+    drawMousePosition();
 }
 
 window.addEventListener("load", onLoad);
